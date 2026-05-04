@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Scan — Mark attendance{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Mark attendance</h2>
+    <ol class="muted">
+        <li>Point your camera at the lecturer's QR code.</li>
+        <li>When it's recognised, take a photo of yourself.</li>
+        <li>We verify your face and mark you present.</li>
+    </ol>
+
+    <div class="scan-stage">
+        <video id="scan-video" autoplay playsinline muted width="320" height="240"></video>
+        <canvas id="scan-canvas" width="320" height="240" style="display:none;"></canvas>
+        <p id="scan-status" class="muted">Starting camera…</p>
+        <div>
+            <button type="button" id="scan-capture" class="btn" disabled>Take selfie</button>
+            <button type="button" id="scan-retake" class="btn" style="display:none; background:#52606d;">Retry</button>
+        </div>
+    </div>
+
+    <input type="hidden" id="scan-token" value="{{ prefilled_token }}">
+    <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="{% static 'js/scanner.js' %}"></script>
+<script>
+    initScanner({
+        video: document.getElementById('scan-video'),
+        canvas: document.getElementById('scan-canvas'),
+        captureBtn: document.getElementById('scan-capture'),
+        retakeBtn: document.getElementById('scan-retake'),
+        statusEl: document.getElementById('scan-status'),
+        tokenInput: document.getElementById('scan-token'),
+        csrfToken: document.getElementById('csrf-token').value,
+        verifyUrl: "{% url 'scan_verify' %}",
+    });
+</script>
+{% endblock %}

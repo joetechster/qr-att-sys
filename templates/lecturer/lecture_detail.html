@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ lecture.title }}{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>{{ lecture.title }} <span class="status-pill status-{{ lecture.status }}">{{ lecture.get_status_display }}</span></h2>
+    <p class="muted">
+        {{ lecture.course.code }} — {{ lecture.course.title }}<br>
+        {{ lecture.scheduled_start }} → {{ lecture.scheduled_end }}
+    </p>
+    <div style="display:flex; gap:8px;">
+        {% if lecture.status != 'ended' %}
+            <form method="post" action="{% url 'lecturer:start_lecture' lecture.id %}">
+                {% csrf_token %}
+                <button class="primary" type="submit">
+                    {% if lecture.status == 'active' %}Open QR display{% else %}Start lecture{% endif %}
+                </button>
+            </form>
+        {% endif %}
+        {% if lecture.status == 'active' %}
+            <form method="post" action="{% url 'lecturer:end_lecture' lecture.id %}">
+                {% csrf_token %}<button class="danger" type="submit">End lecture</button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <h3>Attendance ({{ attendance|length }})</h3>
+    {% if attendance %}
+    <table>
+        <thead><tr><th>Student</th><th>Marked at</th><th>Match distance</th></tr></thead>
+        <tbody>
+        {% for a in attendance %}
+        <tr>
+            <td>{{ a.student.get_full_name|default:a.student.username }}</td>
+            <td>{{ a.marked_at }}</td>
+            <td>{{ a.face_match_distance|floatformat:3 }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}<p class="muted">No one marked yet.</p>{% endif %}
+</div>
+{% endblock %}

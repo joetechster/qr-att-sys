@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Courses{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Courses</h2>
+    {% if courses %}
+    <table>
+        <thead><tr><th>Code</th><th>Title</th><th>Department</th><th>Lecturer</th><th></th></tr></thead>
+        <tbody>
+        {% for c in courses %}
+        <tr>
+            <td>{{ c.code }}</td>
+            <td>{{ c.title }}</td>
+            <td>{{ c.department }}</td>
+            <td>{{ c.lecturer.get_full_name|default:c.lecturer.username }}</td>
+            <td>
+                <a href="{% url 'course_detail' c.id %}">View</a>
+                {% if user.role == 'student' %}
+                    {% if c.id in enrolled_ids %}
+                        <span class="muted">· enrolled</span>
+                    {% else %}
+                        <form method="post" action="{% url 'student:enroll' c.id %}" class="inline">
+                            {% csrf_token %}<button class="link" type="submit">· enroll</button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}<p class="muted">No courses yet.</p>{% endif %}
+</div>
+{% endblock %}

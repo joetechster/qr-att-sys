@@ -1,0 +1,36 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}PCU Attendance{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/">PCU Attendance</a>
+    <nav>
+        {% if user.is_authenticated %}
+            <span class="who">{{ user.get_full_name|default:user.username }} ({{ user.get_role_display }})</span>
+            {% if user.role == 'student' %}<a href="/student/">My dashboard</a>{% endif %}
+            {% if user.is_privileged %}<a href="/lecturer/">Lecturer dashboard</a>{% endif %}
+            <a href="/courses/">Courses</a>
+            <form method="post" action="{% url 'logout' %}" class="inline">{% csrf_token %}<button class="link" type="submit">Logout</button></form>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'register_student' %}">Student sign up</a>
+        {% endif %}
+    </nav>
+</header>
+<main class="container">
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+{% block scripts %}{% endblock %}
+</body>
+</html>

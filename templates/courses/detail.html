@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ course.code }}{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>{{ course.code }} — {{ course.title }}</h2>
+    <p class="muted">
+        Department: {{ course.department }}<br>
+        Lecturer: {{ course.lecturer.get_full_name|default:course.lecturer.username }}<br>
+        Course rep: {{ course.course_rep|default:"—" }}
+    </p>
+</div>
+
+<div class="card">
+    <h3>Enrolled students ({{ enrollments|length }})</h3>
+    {% if enrollments %}
+    <table>
+        <thead><tr><th>Matric</th><th>Name</th><th>Department</th></tr></thead>
+        <tbody>
+        {% for e in enrollments %}
+        <tr>
+            <td>{{ e.student.student_profile.matric_number|default:"—" }}</td>
+            <td>{{ e.student.get_full_name|default:e.student.username }}</td>
+            <td>{{ e.student.student_profile.department|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}<p class="muted">None yet.</p>{% endif %}
+</div>
+
+<div class="card">
+    <h3>Lectures</h3>
+    {% if lectures %}
+    <table>
+        <thead><tr><th>Title</th><th>Start</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for l in lectures %}
+        <tr>
+            <td>{% if user.is_privileged %}<a href="{% url 'lecturer:lecture_detail' l.id %}">{{ l.title }}</a>{% else %}{{ l.title }}{% endif %}</td>
+            <td>{{ l.scheduled_start }}</td>
+            <td><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}<p class="muted">None yet.</p>{% endif %}
+</div>
+{% endblock %}

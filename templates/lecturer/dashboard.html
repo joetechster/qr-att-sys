@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Lecturer dashboard{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Lecturer dashboard</h2>
+    <p><a href="{% url 'lecturer:create_lecture' %}" class="btn">+ Create lecture</a></p>
+</div>
+
+<div class="card">
+    <h3>Your courses</h3>
+    {% if courses %}
+    <table>
+        <thead><tr><th>Code</th><th>Title</th><th>Department</th><th>Course rep</th><th></th></tr></thead>
+        <tbody>
+        {% for c in courses %}
+        <tr>
+            <td>{{ c.code }}</td>
+            <td>{{ c.title }}</td>
+            <td>{{ c.department }}</td>
+            <td>{{ c.course_rep|default:"—" }}</td>
+            <td><a href="{% url 'course_detail' c.id %}">View</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p class="muted">No courses yet. Ask the admin to assign you one in <a href="/admin/">/admin/</a>.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Recent lectures</h3>
+    {% if lectures %}
+    <table>
+        <thead><tr><th>Title</th><th>Course</th><th>Start</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for l in lectures %}
+        <tr>
+            <td>{{ l.title }}</td>
+            <td>{{ l.course.code }}</td>
+            <td>{{ l.scheduled_start }}</td>
+            <td><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
+            <td><a href="{% url 'lecturer:lecture_detail' l.id %}">Open</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}<p class="muted">No lectures yet.</p>{% endif %}
+</div>
+{% endblock %}
