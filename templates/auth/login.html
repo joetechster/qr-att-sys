@@ -1,24 +1,43 @@
 {% extends "base.html" %}
-{% block title %}Login — PCU Attendance{% endblock %}
+{% block title %}Login - PCU Attendance{% endblock %}
 {% block content %}
-<div class="card" style="max-width: 420px; margin: 40px auto;">
-    <h2>Sign in</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        <div class="row">
-            <label for="id_username">Username</label>
-            {{ form.username }}
+<div class="auth-layout">
+    <aside class="auth-aside">
+        <div>
+            <p class="eyebrow">Precious Cornerstone University</p>
+            <h1>Attendance that moves as fast as the lecture.</h1>
+            <p class="muted">Sign in to launch QR sessions, scan attendance, and keep every record tied to the right student.</p>
         </div>
-        <div class="row">
-            <label for="id_password">Password</label>
-            {{ form.password }}
-        </div>
-        <button type="submit" class="primary">Sign in</button>
-    </form>
-    <p class="muted" style="margin-top: 16px;">
-        New student? <a href="{% url 'register_student' %}">Register here</a>.<br>
-        Lecturers/admins are created via the Django admin (<code>/admin/</code>).
-    </p>
+        <ul class="feature-list">
+            <li><strong>Rotating QR codes</strong><br><span class="muted">Every successful scan advances the live code.</span></li>
+            <li><strong>Face verification</strong><br><span class="muted">Students confirm attendance with a quick selfie.</span></li>
+            <li><strong>Role-aware dashboards</strong><br><span class="muted">Students and lecturers land exactly where they need to work.</span></li>
+        </ul>
+    </aside>
+
+    <section class="auth-panel" aria-labelledby="login-title">
+        <p class="eyebrow">Secure access</p>
+        <h2 id="login-title">Welcome back</h2>
+        <p class="muted">Use your PCU Attendance credentials to continue.</p>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="row">
+                <label for="id_username">Username</label>
+                {{ form.username }}
+            </div>
+            <div class="row">
+                <label for="id_password">Password</label>
+                {{ form.password }}
+            </div>
+            <button type="submit" class="primary btn-full">Sign in</button>
+        </form>
+
+        <p class="auth-switch muted">
+            New student? <a href="{% url 'register_student' %}">Create your student account</a>.<br>
+            Lecturer and admin accounts are created in <code>/admin/</code>.
+        </p>
+    </section>
 </div>
 {% endblock %}

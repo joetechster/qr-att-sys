@@ -21,7 +21,7 @@ function initScanner(opts) {
                 statusEl.textContent = 'Code recognised. Center your face and tap "Take selfie".';
                 captureBtn.disabled = false;
             } else {
-                statusEl.textContent = 'Point the camera at the QR code…';
+                statusEl.textContent = 'Point the camera at the QR code...';
                 requestAnimationFrame(scanLoop);
             }
         } catch (err) {
@@ -65,7 +65,7 @@ function initScanner(opts) {
     }
 
     async function submit(imageDataUrl) {
-        statusEl.textContent = 'Verifying face…';
+        statusEl.textContent = 'Verifying face...';
         const body = new URLSearchParams();
         body.set('token', token);
         body.set('image', imageDataUrl);
@@ -81,12 +81,12 @@ function initScanner(opts) {
             });
             const data = await res.json().catch(() => ({}));
             if (res.ok && data.ok) {
-                statusEl.innerHTML = '<strong>✔ ' + (data.message || 'Marked present') +
-                    '</strong> — ' + (data.course || '') + ' · ' + (data.lecture || '');
+                statusEl.innerHTML = '<strong>Success: ' + (data.message || 'Marked present') +
+                    '</strong> - ' + (data.course || '') + ' - ' + (data.lecture || '');
                 captureBtn.style.display = 'none';
                 retakeBtn.style.display = 'none';
             } else {
-                statusEl.textContent = '✖ ' + (data.error || 'Could not mark attendance.');
+                statusEl.textContent = 'Error: ' + (data.error || 'Could not mark attendance.');
                 retakeBtn.style.display = '';
             }
         } catch (err) {

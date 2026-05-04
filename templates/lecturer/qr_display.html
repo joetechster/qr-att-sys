@@ -1,17 +1,40 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}QR — {{ lecture.title }}{% endblock %}
+{% block title %}QR - {{ lecture.title }}{% endblock %}
 {% block content %}
-<div class="card">
-    <h2>{{ lecture.title }}</h2>
-    <p class="muted">{{ lecture.course.code }} — {{ lecture.course.title }}</p>
-    <div class="qr-stage">
-        <canvas id="qr-canvas" width="320" height="320"></canvas>
-        <p id="qr-status" class="muted">Loading current code…</p>
-        <p class="muted">Code rotates automatically after every successful scan.</p>
-        <p><a href="{% url 'lecturer:lecture_detail' lecture.id %}">← Back to lecture</a></p>
+<section class="qr-display-page">
+    <div class="qr-live">
+        <div class="qr-stage">
+            <div class="qr-frame">
+                <canvas id="qr-canvas" width="320" height="320"></canvas>
+            </div>
+            <p id="qr-status" class="status-box">Loading current code...</p>
+        </div>
+
+        <div class="page-copy">
+            <span class="live-indicator">Live QR display</span>
+            <h1 class="page-title">{{ lecture.title }}</h1>
+            <p class="page-kicker">{{ lecture.course.code }} - {{ lecture.course.title }}</p>
+            <div class="detail-list">
+                <div class="detail-row">
+                    <span class="detail-label">Rotation</span>
+                    <span class="detail-value">After each successful scan</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Student flow</span>
+                    <span class="detail-value">Scan QR, then verify face</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Session</span>
+                    <span class="detail-value">{{ lecture.get_status_display }}</span>
+                </div>
+            </div>
+            <div class="action-row">
+                <a href="{% url 'lecturer:lecture_detail' lecture.id %}" class="btn btn-secondary">Back to lecture</a>
+            </div>
+        </div>
     </div>
-</div>
+</section>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>

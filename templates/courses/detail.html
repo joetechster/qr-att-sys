@@ -1,48 +1,121 @@
 {% extends "base.html" %}
 {% block title %}{{ course.code }}{% endblock %}
 {% block content %}
-<div class="card">
-    <h2>{{ course.code }} — {{ course.title }}</h2>
-    <p class="muted">
-        Department: {{ course.department }}<br>
-        Lecturer: {{ course.lecturer.get_full_name|default:course.lecturer.username }}<br>
-        Course rep: {{ course.course_rep|default:"—" }}
-    </p>
+<section class="hero-panel">
+    <div class="page-copy">
+        <p class="eyebrow">Course profile</p>
+        <h1 class="page-title">{{ course.code }} - {{ course.title }}</h1>
+        <p class="page-kicker">{{ course.department }}</p>
+        <div class="stat-grid">
+            <div class="stat">
+                <span class="stat-label">Students</span>
+                <span class="stat-value">{{ enrollments|length }}</span>
+                <span class="stat-caption">enrolled</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Lectures</span>
+                <span class="stat-value">{{ lectures|length }}</span>
+                <span class="stat-caption">scheduled</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Attendance</span>
+                <span class="stat-value">QR</span>
+                <span class="stat-caption">enabled</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="grid grid-2">
+    <section class="card" aria-labelledby="course-info-title">
+        <div class="section-title">
+            <div>
+                <h2 id="course-info-title">Course information</h2>
+                <p class="muted">Academic and staff details.</p>
+            </div>
+        </div>
+        <div class="detail-list">
+            <div class="detail-row">
+                <span class="detail-label">Department</span>
+                <span class="detail-value">{{ course.department }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Lecturer</span>
+                <span class="detail-value">{{ course.lecturer.get_full_name|default:course.lecturer.username }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Course rep</span>
+                <span class="detail-value">{{ course.course_rep|default:"Not assigned" }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="table-panel" aria-labelledby="lectures-title">
+        <div class="panel-header">
+            <div class="section-title">
+                <div>
+                    <h2 id="lectures-title">Lectures</h2>
+                    <p class="muted">Scheduled and completed sessions.</p>
+                </div>
+            </div>
+        </div>
+        {% if lectures %}
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr><th>Title</th><th>Start</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for l in lectures %}
+                        <tr>
+                            <td>{% if user.is_privileged %}<a href="{% url 'lecturer:lecture_detail' l.id %}">{{ l.title }}</a>{% else %}{{ l.title }}{% endif %}</td>
+                            <td class="nowrap">{{ l.scheduled_start }}</td>
+                            <td><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <strong>No lectures yet</strong>
+                <span>Lecture sessions for this course will appear here.</span>
+            </div>
+        {% endif %}
+    </section>
 </div>
 
-<div class="card">
-    <h3>Enrolled students ({{ enrollments|length }})</h3>
+<section class="table-panel" aria-labelledby="enrolled-title">
+    <div class="panel-header">
+        <div class="section-title">
+            <div>
+                <h2 id="enrolled-title">Enrolled students</h2>
+                <p class="muted">{{ enrollments|length }} student{{ enrollments|length|pluralize }} currently enrolled.</p>
+            </div>
+        </div>
+    </div>
     {% if enrollments %}
-    <table>
-        <thead><tr><th>Matric</th><th>Name</th><th>Department</th></tr></thead>
-        <tbody>
-        {% for e in enrollments %}
-        <tr>
-            <td>{{ e.student.student_profile.matric_number|default:"—" }}</td>
-            <td>{{ e.student.get_full_name|default:e.student.username }}</td>
-            <td>{{ e.student.student_profile.department|default:"—" }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}<p class="muted">None yet.</p>{% endif %}
-</div>
-
-<div class="card">
-    <h3>Lectures</h3>
-    {% if lectures %}
-    <table>
-        <thead><tr><th>Title</th><th>Start</th><th>Status</th></tr></thead>
-        <tbody>
-        {% for l in lectures %}
-        <tr>
-            <td>{% if user.is_privileged %}<a href="{% url 'lecturer:lecture_detail' l.id %}">{{ l.title }}</a>{% else %}{{ l.title }}{% endif %}</td>
-            <td>{{ l.scheduled_start }}</td>
-            <td><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}<p class="muted">None yet.</p>{% endif %}
-</div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr><th>Matric</th><th>Name</th><th>Department</th></tr>
+                </thead>
+                <tbody>
+                {% for e in enrollments %}
+                    <tr>
+                        <td><span class="code-pill">{{ e.student.student_profile.matric_number|default:"N/A" }}</span></td>
+                        <td>{{ e.student.get_full_name|default:e.student.username }}</td>
+                        <td>{{ e.student.student_profile.department|default:"N/A" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <strong>No enrolled students</strong>
+            <span>Students who enroll in this course will be listed here.</span>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}

@@ -1,13 +1,30 @@
 {% extends "base.html" %}
 {% block title %}{{ lecture.title }}{% endblock %}
 {% block content %}
-<div class="card">
-    <h2>{{ lecture.title }} <span class="status-pill status-{{ lecture.status }}">{{ lecture.get_status_display }}</span></h2>
-    <p class="muted">
-        {{ lecture.course.code }} — {{ lecture.course.title }}<br>
-        {{ lecture.scheduled_start }} → {{ lecture.scheduled_end }}
-    </p>
-    <div style="display:flex; gap:8px;">
+<section class="hero-panel">
+    <div class="page-copy">
+        <p class="eyebrow">Lecture session</p>
+        <h1 class="page-title">{{ lecture.title }}</h1>
+        <p class="page-kicker">{{ lecture.course.code }} - {{ lecture.course.title }}</p>
+        <div class="stat-grid">
+            <div class="stat">
+                <span class="stat-label">Status</span>
+                <span class="stat-value">{{ lecture.get_status_display }}</span>
+                <span class="stat-caption">current session state</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Attendance</span>
+                <span class="stat-value">{{ attendance|length }}</span>
+                <span class="stat-caption">students marked</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Verification</span>
+                <span class="stat-value">QR</span>
+                <span class="stat-caption">with face match</span>
+            </div>
+        </div>
+    </div>
+    <div class="action-row">
         {% if lecture.status != 'ended' %}
             <form method="post" action="{% url 'lecturer:start_lecture' lecture.id %}">
                 {% csrf_token %}
@@ -18,27 +35,70 @@
         {% endif %}
         {% if lecture.status == 'active' %}
             <form method="post" action="{% url 'lecturer:end_lecture' lecture.id %}">
-                {% csrf_token %}<button class="danger" type="submit">End lecture</button>
+                {% csrf_token %}
+                <button class="danger" type="submit">End lecture</button>
             </form>
         {% endif %}
     </div>
-</div>
+</section>
 
-<div class="card">
-    <h3>Attendance ({{ attendance|length }})</h3>
-    {% if attendance %}
-    <table>
-        <thead><tr><th>Student</th><th>Marked at</th><th>Match distance</th></tr></thead>
-        <tbody>
-        {% for a in attendance %}
-        <tr>
-            <td>{{ a.student.get_full_name|default:a.student.username }}</td>
-            <td>{{ a.marked_at }}</td>
-            <td>{{ a.face_match_distance|floatformat:3 }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}<p class="muted">No one marked yet.</p>{% endif %}
+<div class="stack">
+    <section class="card" aria-labelledby="session-details-title">
+        <div class="section-title">
+            <div>
+                <h2 id="session-details-title">Session details</h2>
+                <p class="muted">Timing and course context for this lecture.</p>
+            </div>
+            <span class="status-pill status-{{ lecture.status }}">{{ lecture.get_status_display }}</span>
+        </div>
+        <div class="detail-list">
+            <div class="detail-row">
+                <span class="detail-label">Course</span>
+                <span class="detail-value">{{ lecture.course.code }} - {{ lecture.course.title }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Scheduled start</span>
+                <span class="detail-value">{{ lecture.scheduled_start }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Scheduled end</span>
+                <span class="detail-value">{{ lecture.scheduled_end }}</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="table-panel" aria-labelledby="attendance-title">
+        <div class="panel-header">
+            <div class="section-title">
+                <div>
+                    <h2 id="attendance-title">Attendance</h2>
+                    <p class="muted">{{ attendance|length }} verified record{{ attendance|length|pluralize }}.</p>
+                </div>
+            </div>
+        </div>
+        {% if attendance %}
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr><th>Student</th><th>Marked at</th><th>Match distance</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for a in attendance %}
+                        <tr>
+                            <td>{{ a.student.get_full_name|default:a.student.username }}</td>
+                            <td class="nowrap">{{ a.marked_at }}</td>
+                            <td>{{ a.face_match_distance|floatformat:3 }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <strong>No students marked yet</strong>
+                <span>Attendance records appear here as students scan the live QR code.</span>
+            </div>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

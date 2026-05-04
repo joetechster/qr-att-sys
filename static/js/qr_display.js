@@ -20,7 +20,7 @@ function initQrDisplay(opts) {
             if (data.token && data.token !== lastToken) {
                 lastToken = data.token;
                 await window.QRCode.toCanvas(canvas, data.scan_url, { width: 320, margin: 2 });
-                statusEl.textContent = 'Live · code rotates after each successful scan.';
+                statusEl.textContent = 'Live - code rotates after each successful scan.';
             }
         } catch (err) {
             statusEl.textContent = 'Network error: ' + err.message;

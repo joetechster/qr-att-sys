@@ -1,50 +1,107 @@
 {% extends "base.html" %}
 {% block title %}Lecturer dashboard{% endblock %}
 {% block content %}
-<div class="card">
-    <h2>Lecturer dashboard</h2>
-    <p><a href="{% url 'lecturer:create_lecture' %}" class="btn">+ Create lecture</a></p>
-</div>
+<section class="hero-panel">
+    <div class="page-copy">
+        <p class="eyebrow">Lecturer workspace</p>
+        <h1 class="page-title">Run attendance with confidence.</h1>
+        <p class="page-kicker">Create lectures, launch rotating QR codes, and monitor verified attendance from one focused workspace.</p>
+        <div class="stat-grid">
+            <div class="stat">
+                <span class="stat-label">Courses</span>
+                <span class="stat-value">{{ courses|length }}</span>
+                <span class="stat-caption">assigned</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Lectures</span>
+                <span class="stat-value">{{ lectures|length }}</span>
+                <span class="stat-caption">recent</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">QR flow</span>
+                <span class="stat-value">Live</span>
+                <span class="stat-caption">rotates after scans</span>
+            </div>
+        </div>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'lecturer:create_lecture' %}" class="btn">Create lecture</a>
+        <a href="{% url 'course_list' %}" class="btn btn-secondary">View courses</a>
+    </div>
+</section>
 
-<div class="card">
-    <h3>Your courses</h3>
-    {% if courses %}
-    <table>
-        <thead><tr><th>Code</th><th>Title</th><th>Department</th><th>Course rep</th><th></th></tr></thead>
-        <tbody>
-        {% for c in courses %}
-        <tr>
-            <td>{{ c.code }}</td>
-            <td>{{ c.title }}</td>
-            <td>{{ c.department }}</td>
-            <td>{{ c.course_rep|default:"—" }}</td>
-            <td><a href="{% url 'course_detail' c.id %}">View</a></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-        <p class="muted">No courses yet. Ask the admin to assign you one in <a href="/admin/">/admin/</a>.</p>
-    {% endif %}
-</div>
+<div class="grid grid-main">
+    <section class="table-panel" aria-labelledby="courses-title">
+        <div class="panel-header">
+            <div class="section-title">
+                <div>
+                    <h2 id="courses-title">Your courses</h2>
+                    <p class="muted">Courses where you can manage lecture attendance.</p>
+                </div>
+            </div>
+        </div>
+        {% if courses %}
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr><th>Code</th><th>Title</th><th>Department</th><th>Course rep</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                    {% for c in courses %}
+                        <tr>
+                            <td><span class="code-pill">{{ c.code }}</span></td>
+                            <td>{{ c.title }}</td>
+                            <td>{{ c.department }}</td>
+                            <td>{{ c.course_rep|default:"Not assigned" }}</td>
+                            <td class="table-actions"><a href="{% url 'course_detail' c.id %}">View</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <strong>No courses assigned</strong>
+                <span>Ask the admin to assign courses in <code>/admin/</code>.</span>
+            </div>
+        {% endif %}
+    </section>
 
-<div class="card">
-    <h3>Recent lectures</h3>
-    {% if lectures %}
-    <table>
-        <thead><tr><th>Title</th><th>Course</th><th>Start</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-        {% for l in lectures %}
-        <tr>
-            <td>{{ l.title }}</td>
-            <td>{{ l.course.code }}</td>
-            <td>{{ l.scheduled_start }}</td>
-            <td><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
-            <td><a href="{% url 'lecturer:lecture_detail' l.id %}">Open</a></td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% else %}<p class="muted">No lectures yet.</p>{% endif %}
+    <section class="table-panel" aria-labelledby="lectures-title">
+        <div class="panel-header">
+            <div class="section-title">
+                <div>
+                    <h2 id="lectures-title">Recent lectures</h2>
+                    <p class="muted">Open active sessions or review attendance.</p>
+                </div>
+            </div>
+        </div>
+        {% if lectures %}
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                    <tr><th>Title</th><th>Course</th><th>Start</th><th>Status</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                    {% for l in lectures %}
+                        <tr>
+                            <td>{{ l.title }}</td>
+                            <td><span class="code-pill">{{ l.course.code }}</span></td>
+                            <td class="nowrap">{{ l.scheduled_start }}</td>
+                            <td><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
+                            <td class="table-actions"><a href="{% url 'lecturer:lecture_detail' l.id %}">Open</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <strong>No lectures yet</strong>
+                <span>Create the first lecture session for an assigned course.</span>
+                <a href="{% url 'lecturer:create_lecture' %}" class="btn btn-secondary">Create lecture</a>
+            </div>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

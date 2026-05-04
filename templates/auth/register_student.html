@@ -1,40 +1,74 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Register — PCU Attendance{% endblock %}
+{% block title %}Register - PCU Attendance{% endblock %}
 {% block content %}
-<div class="card" style="max-width: 720px; margin: 24px auto;">
-    <h2>Student registration</h2>
-    <p class="muted">We'll capture your face once now and use it to verify you when you mark attendance.</p>
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Student onboarding</p>
+        <h1 class="page-title">Create your attendance profile</h1>
+        <p class="page-kicker">Register once, capture a clear reference photo, and use it for fast attendance checks during lectures.</p>
+    </div>
+</div>
+
+<section class="auth-panel" aria-labelledby="register-title">
     <form method="post" id="reg-form">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        <div class="row"><label>Username</label>{{ form.username }} {{ form.username.errors }}</div>
-        <div class="row"><label>First name</label>{{ form.first_name }}</div>
-        <div class="row"><label>Last name</label>{{ form.last_name }}</div>
-        <div class="row"><label>Email (optional)</label>{{ form.email }}</div>
-        <div class="row"><label>Matric number</label>{{ form.matric_number }} {{ form.matric_number.errors }}</div>
-        <div class="row"><label>Department</label>{{ form.department }}</div>
-        <div class="row"><label>Level</label>{{ form.level }}</div>
-        <div class="row"><label>Password</label>{{ form.password1 }} {{ form.password1.errors }}</div>
-        <div class="row"><label>Confirm password</label>{{ form.password2 }} {{ form.password2.errors }}</div>
 
-        <h3 style="margin-top: 24px;">Face capture</h3>
-        <div class="scan-stage">
-            <video id="reg-video" autoplay playsinline muted width="320" height="240"></video>
-            <canvas id="reg-canvas" width="320" height="240" style="display:none;"></canvas>
+        <div class="section-title">
             <div>
-                <button type="button" id="reg-capture" class="btn">Take photo</button>
-                <button type="button" id="reg-retake" class="btn" style="display:none;">Retake</button>
+                <h2 id="register-title">Student details</h2>
+                <p class="muted">Use your official academic information.</p>
             </div>
-            <p id="reg-status" class="muted">Click "Take photo" once your face is centered.</p>
         </div>
+
+        <div class="form-grid">
+            <div class="row"><label for="id_username">Username</label>{{ form.username }}{{ form.username.errors }}</div>
+            <div class="row"><label for="id_email">Email (optional)</label>{{ form.email }}</div>
+            <div class="row"><label for="id_first_name">First name</label>{{ form.first_name }}</div>
+            <div class="row"><label for="id_last_name">Last name</label>{{ form.last_name }}</div>
+            <div class="row"><label for="id_matric_number">Matric number</label>{{ form.matric_number }}{{ form.matric_number.errors }}</div>
+            <div class="row"><label for="id_department">Department</label>{{ form.department }}</div>
+            <div class="row"><label for="id_level">Level</label>{{ form.level }}</div>
+            <div class="row"><label for="id_password1">Password</label>{{ form.password1 }}{{ form.password1.errors }}</div>
+            <div class="row"><label for="id_password2">Confirm password</label>{{ form.password2 }}{{ form.password2.errors }}</div>
+        </div>
+
+        <div class="capture-layout">
+            <div>
+                <div class="section-title">
+                    <div>
+                        <h2>Face capture</h2>
+                        <p class="muted">Center your face, keep the frame well lit, then take one clear photo.</p>
+                    </div>
+                </div>
+                <div class="scan-stage">
+                    <div class="camera-frame">
+                        <video id="reg-video" autoplay playsinline muted width="320" height="240"></video>
+                        <canvas id="reg-canvas" width="320" height="240" style="display:none;"></canvas>
+                    </div>
+                    <p id="reg-status" class="status-box">Click "Take photo" once your face is centered.</p>
+                    <div class="action-row">
+                        <button type="button" id="reg-capture" class="btn">Take photo</button>
+                        <button type="button" id="reg-retake" class="btn btn-secondary" style="display:none;">Retake</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="empty-state">
+                <strong>Camera tip</strong>
+                <span>Face the camera directly and avoid shadows, caps, or anything blocking your face.</span>
+            </aside>
+        </div>
+
         {{ form.face_image_data }}
 
-        <button type="submit" class="primary" id="reg-submit" disabled style="margin-top:16px;">
-            Create account
-        </button>
+        <div class="form-actions">
+            <button type="submit" class="primary" id="reg-submit" disabled>Create account</button>
+            <a href="{% url 'login' %}" class="btn btn-quiet">Back to login</a>
+        </div>
     </form>
-</div>
+</section>
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/face_capture.js' %}"></script>

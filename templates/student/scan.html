@@ -1,28 +1,34 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Scan — Mark attendance{% endblock %}
+{% block title %}Scan - Mark attendance{% endblock %}
+{% block main_class %}narrow{% endblock %}
 {% block content %}
-<div class="card">
-    <h2>Mark attendance</h2>
-    <ol class="muted">
+<section class="card scan-card" aria-labelledby="scan-title">
+    <p class="eyebrow">Attendance scan</p>
+    <h1 id="scan-title" class="page-title">Mark attendance</h1>
+    <p class="page-kicker">Scan the lecturer's live QR code, then take a quick selfie so the system can verify you.</p>
+
+    <ol class="scan-steps">
         <li>Point your camera at the lecturer's QR code.</li>
-        <li>When it's recognised, take a photo of yourself.</li>
-        <li>We verify your face and mark you present.</li>
+        <li>Wait for the code to be recognised.</li>
+        <li>Take your selfie to complete verification.</li>
     </ol>
 
     <div class="scan-stage">
-        <video id="scan-video" autoplay playsinline muted width="320" height="240"></video>
-        <canvas id="scan-canvas" width="320" height="240" style="display:none;"></canvas>
-        <p id="scan-status" class="muted">Starting camera…</p>
-        <div>
+        <div class="camera-frame">
+            <video id="scan-video" autoplay playsinline muted width="320" height="240"></video>
+            <canvas id="scan-canvas" width="320" height="240" style="display:none;"></canvas>
+        </div>
+        <p id="scan-status" class="status-box">Starting camera...</p>
+        <div class="action-row">
             <button type="button" id="scan-capture" class="btn" disabled>Take selfie</button>
-            <button type="button" id="scan-retake" class="btn" style="display:none; background:#52606d;">Retry</button>
+            <button type="button" id="scan-retake" class="btn btn-secondary" style="display:none;">Retry</button>
         </div>
     </div>
 
     <input type="hidden" id="scan-token" value="{{ prefilled_token }}">
     <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
-</div>
+</section>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>

@@ -9,25 +9,50 @@
 </head>
 <body>
 <header class="topbar">
-    <a class="brand" href="/">PCU Attendance</a>
-    <nav>
-        {% if user.is_authenticated %}
-            <span class="who">{{ user.get_full_name|default:user.username }} ({{ user.get_role_display }})</span>
-            {% if user.role == 'student' %}<a href="/student/">My dashboard</a>{% endif %}
-            {% if user.is_privileged %}<a href="/lecturer/">Lecturer dashboard</a>{% endif %}
-            <a href="/courses/">Courses</a>
-            <form method="post" action="{% url 'logout' %}" class="inline">{% csrf_token %}<button class="link" type="submit">Logout</button></form>
-        {% else %}
-            <a href="{% url 'login' %}">Login</a>
-            <a href="{% url 'register_student' %}">Student sign up</a>
-        {% endif %}
-    </nav>
+    <div class="topbar-inner">
+        <a class="brand" href="/">
+            <span class="brand-mark">PCU</span>
+            <span>
+                <span class="brand-title">PCU Attendance</span>
+                <span class="brand-subtitle">QR and face verified attendance</span>
+            </span>
+        </a>
+        <nav aria-label="Primary navigation">
+            {% if user.is_authenticated %}
+                <span class="nav-identity">
+                    <span class="avatar">{{ user.get_role_display|slice:":2"|upper }}</span>
+                    <span class="identity-text">
+                        <span class="identity-name">{{ user.get_full_name|default:user.username }}</span>
+                        <span class="identity-role">{{ user.get_role_display }}</span>
+                    </span>
+                </span>
+                {% if user.role == 'student' %}
+                    <a class="nav-link" href="{% url 'student:dashboard' %}">Dashboard</a>
+                    <a class="nav-link" href="/scan/">Scan</a>
+                {% endif %}
+                {% if user.is_privileged %}
+                    <a class="nav-link" href="{% url 'lecturer:dashboard' %}">Lecturer</a>
+                {% endif %}
+                <a class="nav-link" href="{% url 'course_list' %}">Courses</a>
+                <form method="post" action="{% url 'logout' %}" class="inline">
+                    {% csrf_token %}
+                    <button class="link" type="submit">Logout</button>
+                </form>
+            {% else %}
+                <a class="nav-link" href="{% url 'login' %}">Login</a>
+                <a class="btn" href="{% url 'register_student' %}">Student sign up</a>
+            {% endif %}
+        </nav>
+    </div>
 </header>
-<main class="container">
+
+<main class="app-main {% block main_class %}{% endblock %}">
     {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
-    </ul>
+        <ul class="messages" aria-live="polite">
+            {% for message in messages %}
+                <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
     {% endif %}
     {% block content %}{% endblock %}
 </main>

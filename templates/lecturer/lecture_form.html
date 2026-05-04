@@ -1,17 +1,30 @@
 {% extends "base.html" %}
 {% block title %}New lecture{% endblock %}
+{% block main_class %}narrow{% endblock %}
 {% block content %}
-<div class="card" style="max-width: 560px;">
-    <h2>Create lecture</h2>
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Lecture setup</p>
+        <h1 class="page-title">Create lecture</h1>
+        <p class="page-kicker">Schedule the lecture, then open the live QR display when you are ready to start attendance.</p>
+    </div>
+</div>
+
+<section class="auth-panel" aria-labelledby="lecture-form-title">
+    <h2 id="lecture-form-title">Lecture details</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        <div class="row"><label>Course</label>{{ form.course }}{{ form.course.errors }}</div>
-        <div class="row"><label>Title</label>{{ form.title }}{{ form.title.errors }}</div>
-        <div class="row"><label>Scheduled start</label>{{ form.scheduled_start }}{{ form.scheduled_start.errors }}</div>
-        <div class="row"><label>Scheduled end</label>{{ form.scheduled_end }}{{ form.scheduled_end.errors }}</div>
-        <button type="submit" class="primary">Create</button>
-        <a href="{% url 'lecturer:dashboard' %}" class="muted" style="margin-left:12px;">Cancel</a>
+        <div class="row"><label for="id_course">Course</label>{{ form.course }}{{ form.course.errors }}</div>
+        <div class="row"><label for="id_title">Title</label>{{ form.title }}{{ form.title.errors }}</div>
+        <div class="form-grid">
+            <div class="row"><label for="id_scheduled_start">Scheduled start</label>{{ form.scheduled_start }}{{ form.scheduled_start.errors }}</div>
+            <div class="row"><label for="id_scheduled_end">Scheduled end</label>{{ form.scheduled_end }}{{ form.scheduled_end.errors }}</div>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="primary">Create lecture</button>
+            <a href="{% url 'lecturer:dashboard' %}" class="btn btn-quiet">Cancel</a>
+        </div>
     </form>
-</div>
+</section>
 {% endblock %}
