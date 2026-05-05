@@ -41,6 +41,10 @@ pip install dlib-bin
 pip install -r requirements.txt
 
 # 4. Migrate DB and create the admin user
+python manage.py makemigrations accounts
+python manage.py makemigrations attendance
+python manage.py makemigrations courses
+python manage.py makemigrations lectures
 python manage.py migrate
 python manage.py createsuperuser   # role defaults to "admin" via Django admin
 
