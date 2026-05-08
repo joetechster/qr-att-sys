@@ -7,12 +7,14 @@ DEBUG = True
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",
     "apps.accounts",
     "apps.courses",
     "apps.lectures",
@@ -48,6 +50,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "attendance_sys.wsgi.application"
+ASGI_APPLICATION = "attendance_sys.asgi.application"
+
+# In-memory channel layer is fine for a single ASGI process. If the deployment
+# ever runs multiple workers, swap to channels-redis so QR rotation events
+# propagate across processes.
+CHANNEL_LAYERS = {
+    "default": {"BACKEND": "channels.layers.InMemoryChannelLayer"},
+}
 
 DATABASES = {
     "default": {

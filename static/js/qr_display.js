@@ -1,33 +1,56 @@
-/* Polls the server every 1s for the current QR token and re-renders the QR.
- * When the token changes (because a student scanned), the displayed QR rotates. */
+/* Subscribes to a per-lecture WebSocket and re-renders the QR each time the
+ * server pushes a new token (i.e. after a successful student scan). */
 
 function initQrDisplay(opts) {
-    const { currentTokenUrl, canvas, statusEl } = opts;
+    const { wsUrl, canvas, statusEl } = opts;
+    const fullUrl = (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host + wsUrl;
+
+    let socket = null;
+    let backoff = 500;
+    let stopped = false;
     let lastToken = null;
 
-    async function tick() {
-        try {
-            const res = await fetch(currentTokenUrl, { credentials: 'same-origin' });
-            if (!res.ok) {
-                statusEl.textContent = 'Could not fetch current code (HTTP ' + res.status + ')';
-                return;
-            }
-            const data = await res.json();
-            if (data.status !== 'active') {
-                statusEl.textContent = 'Lecture is not active.';
-                return;
-            }
-            if (data.token && data.token !== lastToken) {
+    function render(token) {
+        const scanUrl = location.origin + '/scan/?t=' + encodeURIComponent(token);
+        new window.QRious({ element: canvas, value: scanUrl, size: 320, padding: 16 });
+    }
+
+    function onMessage(ev) {
+        let data;
+        try { data = JSON.parse(ev.data); } catch { return; }
+        if (data.status === 'active' && data.token) {
+            if (data.token !== lastToken) {
                 lastToken = data.token;
-                new window.QRious({ element: canvas, value: data.scan_url, size: 320, padding: 16 });
-                statusEl.textContent = 'Live - code rotates after each successful scan.';
+                render(data.token);
             }
-        } catch (err) {
-            statusEl.textContent = 'Network error: ' + err.message;
+            statusEl.textContent = 'Live - code rotates after each successful scan.';
+        } else {
+            lastToken = null;
+            statusEl.textContent = 'Lecture is not active.';
         }
     }
 
-    tick();
-    setInterval(tick, 1000);
+    function connect() {
+        if (stopped) return;
+        statusEl.textContent = 'Connecting...';
+        socket = new WebSocket(fullUrl);
+        socket.onopen = () => { backoff = 500; };
+        socket.onmessage = onMessage;
+        socket.onclose = (ev) => {
+            if (stopped) return;
+            // Auth failures (4401/4403) should not retry forever.
+            if (ev.code === 4401 || ev.code === 4403) {
+                stopped = true;
+                statusEl.textContent = 'Not authorized to view this lecture.';
+                return;
+            }
+            statusEl.textContent = 'Disconnected. Reconnecting...';
+            setTimeout(connect, backoff);
+            backoff = Math.min(backoff * 2, 10000);
+        };
+        socket.onerror = () => { /* close handler will run */ };
+    }
+
+    connect();
 }
 window.initQrDisplay = initQrDisplay;

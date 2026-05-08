@@ -41,7 +41,7 @@
 <script src="{% static 'js/qr_display.js' %}"></script>
 <script>
     initQrDisplay({
-        currentTokenUrl: "{% url 'current_token' lecture.id %}",
+        wsUrl: "/ws/lectures/{{ lecture.id }}/qr/",
         canvas: document.getElementById('qr-canvas'),
         statusEl: document.getElementById('qr-status'),
     });
