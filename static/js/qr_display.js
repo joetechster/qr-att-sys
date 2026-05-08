@@ -19,7 +19,7 @@ function initQrDisplay(opts) {
             }
             if (data.token && data.token !== lastToken) {
                 lastToken = data.token;
-                await window.QRCode.toCanvas(canvas, data.scan_url, { width: 320, margin: 2 });
+                new window.QRious({ element: canvas, value: data.scan_url, size: 320, padding: 16 });
                 statusEl.textContent = 'Live - code rotates after each successful scan.';
             }
         } catch (err) {
