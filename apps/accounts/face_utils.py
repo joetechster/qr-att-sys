@@ -28,6 +28,8 @@ def _ensure_lib() -> None:
     if face_recognition is None:
         raise FaceError(
             "face_recognition is not installed. Run `pip install -r requirements.txt`. "
+            "On Windows, install `dlib-bin` first and then `face_recognition --no-deps` "
+            "as shown in the README. "
             f"Original import error: {_import_error}"
         )
 

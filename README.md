@@ -34,8 +34,8 @@ static/           # JS + CSS
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-# 2. Install dlib via prebuilt wheel (saves you from needing CMake + MSVC build tools)
-pip install dlib-bin
+# 2. Install the face-recognition stack without compiling dlib
+pip install --no-deps -r requirements-face.txt
 
 # 3. Install the rest
 pip install -r requirements.txt
@@ -52,7 +52,7 @@ python manage.py createsuperuser   # role defaults to "admin" via Django admin
 python manage.py runserver 0.0.0.0:8000
 ```
 
-If `pip install dlib-bin` fails, fall back to compiling from source: install **CMake** and **Visual Studio Build Tools (Desktop development with C++)**, then `pip install dlib face_recognition`.
+The `--no-deps` flag is critical: `face_recognition`'s metadata asks pip for the source `dlib` package, which triggers a Visual Studio C++ build error. `dlib-bin` provides the same compiled module under a different distribution name, so we install it ourselves and tell pip not to resolve `face_recognition`'s deps. If `pip install dlib-bin` fails, fall back to compiling from source: install **CMake** and **Visual Studio Build Tools (Desktop development with C++)**, then `pip install dlib face_recognition`.
 
 ## First run
 
