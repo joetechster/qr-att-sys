@@ -23,6 +23,7 @@
         <div class="action-row">
             <button type="button" id="scan-capture" class="btn" disabled>Take selfie</button>
             <button type="button" id="scan-retake" class="btn btn-secondary" style="display:none;">Retry</button>
+            <button type="button" id="scan-switch" class="btn btn-secondary" style="display:none;" aria-label="Switch camera">Switch camera</button>
         </div>
     </div>
 
@@ -39,6 +40,7 @@
         canvas: document.getElementById('scan-canvas'),
         captureBtn: document.getElementById('scan-capture'),
         retakeBtn: document.getElementById('scan-retake'),
+        switchBtn: document.getElementById('scan-switch'),
         statusEl: document.getElementById('scan-status'),
         tokenInput: document.getElementById('scan-token'),
         csrfToken: document.getElementById('csrf-token').value,

@@ -6,22 +6,39 @@
  *   4. Show success / error to the user. */
 
 function initScanner(opts) {
-    const { video, canvas, captureBtn, retakeBtn, statusEl, tokenInput, csrfToken, verifyUrl } = opts;
+    const { video, canvas, captureBtn, retakeBtn, switchBtn, statusEl, tokenInput, csrfToken, verifyUrl } = opts;
     let stream = null;
     let scanning = !tokenInput.value;
     let token = tokenInput.value || null;
+    let currentFacing = null;
 
-    async function startCamera() {
+    async function getStream(facingMode) {
+        // Prefer the requested camera; fall back to any camera if that exact
+        // facing mode isn't available (e.g. laptops with no rear camera).
         try {
-            stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user' }, audio: false,
+            return await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: facingMode } }, audio: false,
             });
+        } catch (e) {
+            return await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+    }
+
+    async function startCamera(facingMode) {
+        // Default: rear camera while we still need to read the QR, front camera
+        // once we're on to the selfie step.
+        if (!facingMode) facingMode = token ? 'user' : 'environment';
+        try {
+            stopCamera();
+            stream = await getStream(facingMode);
+            currentFacing = facingMode;
             video.srcObject = stream;
             if (token) {
                 statusEl.textContent = 'Code recognised. Center your face and tap "Take selfie".';
                 captureBtn.disabled = false;
             } else {
                 statusEl.textContent = 'Point the camera at the QR code...';
+                scanning = true;
                 requestAnimationFrame(scanLoop);
             }
         } catch (err) {
@@ -29,8 +46,19 @@ function initScanner(opts) {
         }
     }
 
+    async function maybeShowSwitchBtn() {
+        // Only show the toggle on devices with more than one camera.
+        if (!switchBtn || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const cams = devices.filter(d => d.kind === 'videoinput');
+            switchBtn.style.display = cams.length > 1 ? '' : 'none';
+        } catch (e) { /* leave hidden */ }
+    }
+
     function stopCamera() {
         if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+        video.srcObject = null;
     }
 
     function extractTokenFromUrl(text) {
@@ -55,8 +83,8 @@ function initScanner(opts) {
                     token = t;
                     tokenInput.value = t;
                     scanning = false;
-                    statusEl.textContent = 'Code recognised. Center your face and tap "Take selfie".';
-                    captureBtn.disabled = false;
+                    statusEl.textContent = 'Code recognised. Switching to front camera...';
+                    startCamera('user');
                     return;
                 }
             }
@@ -109,10 +137,20 @@ function initScanner(opts) {
     retakeBtn.addEventListener('click', async () => {
         retakeBtn.style.display = 'none';
         captureBtn.disabled = false;
-        // Keep the same token; just retake the selfie.
-        await startCamera();
+        // Keep the same token; just retake the selfie with the front camera.
+        await startCamera('user');
     });
 
+    if (switchBtn) {
+        switchBtn.addEventListener('click', async () => {
+            const next = currentFacing === 'user' ? 'environment' : 'user';
+            switchBtn.disabled = true;
+            await startCamera(next);
+            switchBtn.disabled = false;
+        });
+    }
+
     startCamera();
+    maybeShowSwitchBtn();
 }
 window.initScanner = initScanner;
