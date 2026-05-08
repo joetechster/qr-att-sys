@@ -26,6 +26,9 @@
     </div>
     <div class="action-row">
         <a href="{% url 'lecturer:create_lecture' %}" class="btn">Create lecture</a>
+        {% if user.role == 'lecturer' %}
+            <a href="{% url 'course_create' %}" class="btn btn-secondary">New course</a>
+        {% endif %}
         <a href="{% url 'course_list' %}" class="btn btn-secondary">View courses</a>
     </div>
 </section>
@@ -38,6 +41,9 @@
                     <h2 id="courses-title">Your courses</h2>
                     <p class="muted">Courses where you can manage lecture attendance.</p>
                 </div>
+                {% if user.role == 'lecturer' %}
+                    <a href="{% url 'course_create' %}" class="btn btn-secondary">+ New course</a>
+                {% endif %}
             </div>
         </div>
         {% if courses %}
@@ -61,8 +67,14 @@
             </div>
         {% else %}
             <div class="empty-state">
-                <strong>No courses assigned</strong>
-                <span>Ask the admin to assign courses in <code>/admin/</code>.</span>
+                {% if user.role == 'lecturer' %}
+                    <strong>No courses yet</strong>
+                    <span>Get started by creating your first course.</span>
+                    <a href="{% url 'course_create' %}" class="btn btn-secondary">Create course</a>
+                {% else %}
+                    <strong>No courses assigned</strong>
+                    <span>Ask the admin to assign courses in <code>/admin/</code>.</span>
+                {% endif %}
             </div>
         {% endif %}
     </section>

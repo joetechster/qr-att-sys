@@ -56,7 +56,19 @@ def create_lecture(request):
     if request.method == "POST":
         form = LectureForm(request.POST, user=request.user)
         if form.is_valid():
+            cd = form.cleaned_data
+            if cd.get("course_mode") == LectureForm.MODE_NEW:
+                course = Course.objects.create(
+                    code=cd["new_course_code"].strip(),
+                    title=cd["new_course_title"].strip(),
+                    department=cd["new_course_department"].strip(),
+                    lecturer=request.user,
+                    course_rep=cd.get("new_course_rep"),
+                )
+            else:
+                course = cd["course"]
             lecture: Lecture = form.save(commit=False)
+            lecture.course = course
             lecture.created_by = request.user
             lecture.save()
             messages.success(request, "Lecture created.")

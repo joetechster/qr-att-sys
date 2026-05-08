@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}New course{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Course setup</p>
+        <h1 class="page-title">Create course</h1>
+        <p class="page-kicker">Add a course you teach. You'll be set as the lecturer automatically; assign a course rep now or later.</p>
+    </div>
+</div>
+
+<section class="auth-panel" aria-labelledby="course-form-title">
+    <h2 id="course-form-title">Course details</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row"><label for="id_code">Code</label>{{ form.code }}{{ form.code.errors }}</div>
+        <div class="row"><label for="id_title">Title</label>{{ form.title }}{{ form.title.errors }}</div>
+        <div class="row"><label for="id_department">Department</label>{{ form.department }}{{ form.department.errors }}</div>
+        <div class="row"><label for="id_course_rep">Course rep (optional)</label>{{ form.course_rep }}{{ form.course_rep.errors }}</div>
+        <div class="form-actions">
+            <button type="submit" class="primary">Create course</button>
+            <a href="{% url 'course_list' %}" class="btn btn-quiet">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

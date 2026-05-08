@@ -15,7 +15,23 @@
     <form method="post">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        <div class="row"><label for="id_course">Course</label>{{ form.course }}{{ form.course.errors }}</div>
+        {% if user.role == 'lecturer' %}
+            <fieldset class="row">
+                <legend>Course</legend>
+                {{ form.course_mode }}
+            </fieldset>
+        {% endif %}
+        <div class="row" data-mode="existing">
+            <label for="id_course">Existing course</label>{{ form.course }}{{ form.course.errors }}
+        </div>
+        {% if user.role == 'lecturer' %}
+            <div data-mode="new" hidden>
+                <div class="row"><label for="id_new_course_code">New course code</label>{{ form.new_course_code }}{{ form.new_course_code.errors }}</div>
+                <div class="row"><label for="id_new_course_title">New course title</label>{{ form.new_course_title }}{{ form.new_course_title.errors }}</div>
+                <div class="row"><label for="id_new_course_department">Department</label>{{ form.new_course_department }}{{ form.new_course_department.errors }}</div>
+                <div class="row"><label for="id_new_course_rep">Course rep (optional)</label>{{ form.new_course_rep }}{{ form.new_course_rep.errors }}</div>
+            </div>
+        {% endif %}
         <div class="row"><label for="id_title">Title</label>{{ form.title }}{{ form.title.errors }}</div>
         <div class="form-grid">
             <div class="row"><label for="id_scheduled_start">Scheduled start</label>{{ form.scheduled_start }}{{ form.scheduled_start.errors }}</div>
@@ -27,4 +43,21 @@
         </div>
     </form>
 </section>
+{% if user.role == 'lecturer' %}
+<script>
+(function () {
+    var radios = document.querySelectorAll('input[name="course_mode"]');
+    var existingBox = document.querySelector('[data-mode="existing"]');
+    var newBox = document.querySelector('[data-mode="new"]');
+    function sync() {
+        var checked = document.querySelector('input[name="course_mode"]:checked');
+        var v = checked ? checked.value : 'existing';
+        if (existingBox) existingBox.hidden = v !== 'existing';
+        if (newBox) newBox.hidden = v !== 'new';
+    }
+    radios.forEach(function (r) { r.addEventListener('change', sync); });
+    sync();
+})();
+</script>
+{% endif %}
 {% endblock %}

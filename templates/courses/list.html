@@ -16,6 +16,9 @@
                 <h2 id="courses-list-title">Available courses</h2>
                 <p class="muted">{{ courses|length }} course{{ courses|length|pluralize }} listed.</p>
             </div>
+            {% if user.role == 'lecturer' %}
+                <a href="{% url 'course_create' %}" class="btn btn-secondary">+ New course</a>
+            {% endif %}
         </div>
     </div>
     {% if courses %}
