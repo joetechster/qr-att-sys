@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}File a complaint{% endblock %}
+{% block content %}
+<section class="hero-panel">
+    <div class="page-copy">
+        <p class="eyebrow">Complaints</p>
+        <h1 class="page-title">File a complaint</h1>
+        <p class="page-kicker">Raise concerns about a lecturer, a course, or general department matters. The Head of Department will review your complaint.</p>
+    </div>
+</section>
+
+<section class="table-panel">
+    <div class="panel-header">
+        <div class="section-title">
+            <div>
+                <h2>New complaint</h2>
+                <p class="muted">Course and lecturer are optional — leave them blank for a general complaint.</p>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" class="form-stack" novalidate>
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <ul class="messages"><li class="error">{{ form.non_field_errors|join:" " }}</li></ul>
+        {% endif %}
+
+        <div class="field">
+            <label for="{{ form.course.id_for_label }}">Course (optional)</label>
+            {{ form.course }}
+            {% if form.course.errors %}<small class="error">{{ form.course.errors|join:" " }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+            <label for="{{ form.lecturer.id_for_label }}">Lecturer (optional)</label>
+            {{ form.lecturer }}
+            {% if form.lecturer.errors %}<small class="error">{{ form.lecturer.errors|join:" " }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+            <label for="{{ form.subject.id_for_label }}">Subject</label>
+            {{ form.subject }}
+            {% if form.subject.errors %}<small class="error">{{ form.subject.errors|join:" " }}</small>{% endif %}
+        </div>
+
+        <div class="field">
+            <label for="{{ form.body.id_for_label }}">Description</label>
+            {{ form.body }}
+            {% if form.body.errors %}<small class="error">{{ form.body.errors|join:" " }}</small>{% endif %}
+        </div>
+
+        <div class="field field-inline">
+            <label for="{{ form.is_anonymous.id_for_label }}">
+                {{ form.is_anonymous }}
+                Submit anonymously (your name will be hidden from the HOD)
+            </label>
+        </div>
+
+        <div class="action-row">
+            <button type="submit" class="btn">Submit complaint</button>
+            <a href="{% url 'complaints:my_complaints' %}" class="btn btn-secondary">View my complaints</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

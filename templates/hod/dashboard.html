@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}HOD dashboard{% endblock %}
+{% block content %}
+<section class="hero-panel">
+    <div class="page-copy">
+        <p class="eyebrow">Head of Department</p>
+        <h1 class="page-title">Department complaints</h1>
+        <p class="page-kicker">Review and respond to complaints filed by students about lecturers, courses, and general matters.</p>
+        <div class="stat-grid">
+            <div class="stat">
+                <span class="stat-label">Total</span>
+                <span class="stat-value">{{ complaints|length }}</span>
+                <span class="stat-caption">{% if status_filter %}filtered{% else %}all complaints{% endif %}</span>
+            </div>
+        </div>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'hod:dashboard' %}" class="btn {% if not status_filter %}{% else %}btn-secondary{% endif %}">All</a>
+        {% for value, label in status_choices %}
+            <a href="?status={{ value }}" class="btn {% if status_filter == value %}{% else %}btn-secondary{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="table-panel">
+    <div class="panel-header">
+        <div class="section-title">
+            <div>
+                <h2>Complaints</h2>
+                <p class="muted">Newest first. Click a row to review and respond.</p>
+            </div>
+        </div>
+    </div>
+    {% if complaints %}
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr><th>Subject</th><th>Student</th><th>About</th><th>Filed</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for c in complaints %}
+                    <tr>
+                        <td>{{ c.subject }}</td>
+                        <td>
+                            {% if c.is_anonymous %}
+                                <span class="tag">Anonymous</span>
+                            {% else %}
+                                {{ c.student.get_full_name|default:c.student.username }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if c.course %}<span class="code-pill">{{ c.course.code }}</span>{% endif %}
+                            {% if c.lecturer %}<div class="muted">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</div>{% endif %}
+                            {% if not c.course and not c.lecturer %}<span class="muted">General</span>{% endif %}
+                        </td>
+                        <td class="nowrap">{{ c.created_at }}</td>
+                        <td><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
+                        <td class="table-actions"><a href="{% url 'hod:complaint_detail' c.id %}">Review</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <strong>No complaints to show</strong>
+            <span>{% if status_filter %}Nothing matches this filter.{% else %}When students file complaints, they appear here.{% endif %}</span>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

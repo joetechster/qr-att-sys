@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\joseph.bamidele\\\\Desktop\\\\programming\\\\qr-att-sys\" -Recurse -Depth 2 -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(xargs ls -la)",
+      "Bash(python manage.py makemigrations accounts complaints)",
+      "Bash(venv\\\\\\\\Scripts\\\\\\\\python.exe manage.py makemigrations accounts complaints)",
+      "PowerShell(& .\\\\venv\\\\Scripts\\\\python.exe manage.py makemigrations accounts complaints)",
+      "PowerShell(& .\\\\venv\\\\Scripts\\\\python.exe manage.py migrate)",
+      "PowerShell(& .\\\\venv\\\\Scripts\\\\python.exe manage.py check)"
+    ]
+  }
+}

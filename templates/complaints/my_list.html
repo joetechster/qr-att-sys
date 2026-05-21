@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}My complaints{% endblock %}
+{% block content %}
+<section class="hero-panel">
+    <div class="page-copy">
+        <p class="eyebrow">Complaints</p>
+        <h1 class="page-title">My complaints</h1>
+        <p class="page-kicker">Track the status and any response from the Head of Department.</p>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'complaints:submit' %}" class="btn">File a new complaint</a>
+    </div>
+</section>
+
+<section class="table-panel">
+    <div class="panel-header">
+        <div class="section-title">
+            <div>
+                <h2>Submitted complaints</h2>
+                <p class="muted">Most recent first.</p>
+            </div>
+        </div>
+    </div>
+    {% if complaints %}
+        <div class="table-scroll">
+            <table>
+                <thead>
+                <tr><th>Subject</th><th>About</th><th>Filed</th><th>Status</th><th>Response</th></tr>
+                </thead>
+                <tbody>
+                {% for c in complaints %}
+                    <tr>
+                        <td>{{ c.subject }}{% if c.is_anonymous %} <span class="tag">anonymous</span>{% endif %}</td>
+                        <td>
+                            {% if c.course %}<span class="code-pill">{{ c.course.code }}</span>{% endif %}
+                            {% if c.lecturer %}<div class="muted">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</div>{% endif %}
+                            {% if not c.course and not c.lecturer %}<span class="muted">General</span>{% endif %}
+                        </td>
+                        <td class="nowrap">{{ c.created_at }}</td>
+                        <td><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
+                        <td>
+                            {% if c.hod_response %}
+                                {{ c.hod_response|linebreaksbr }}
+                            {% else %}
+                                <span class="muted">No response yet</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <strong>No complaints filed</strong>
+            <span>If you have an issue, raise it here for the Head of Department to see.</span>
+            <a href="{% url 'complaints:submit' %}" class="btn btn-secondary">File a complaint</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

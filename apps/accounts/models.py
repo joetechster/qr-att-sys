@@ -8,6 +8,7 @@ class User(AbstractUser):
         LECTURER = "lecturer", "Lecturer"
         COURSE_REP = "course_rep", "Course Rep"
         STUDENT = "student", "Student"
+        HOD = "hod", "Head of Department"
 
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.STUDENT)
 

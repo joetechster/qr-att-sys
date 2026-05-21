@@ -29,9 +29,13 @@
                 {% if user.role == 'student' %}
                     <a class="nav-link" href="{% url 'student:dashboard' %}">Dashboard</a>
                     <a class="nav-link" href="/scan/">Scan</a>
+                    <a class="nav-link" href="{% url 'complaints:my_complaints' %}">Complaints</a>
                 {% endif %}
                 {% if user.is_privileged %}
                     <a class="nav-link" href="{% url 'lecturer:dashboard' %}">Lecturer</a>
+                {% endif %}
+                {% if user.role == 'hod' %}
+                    <a class="nav-link" href="{% url 'hod:dashboard' %}">HOD Dashboard</a>
                 {% endif %}
                 <a class="nav-link" href="{% url 'course_list' %}">Courses</a>
                 <form method="post" action="{% url 'logout' %}" class="inline">

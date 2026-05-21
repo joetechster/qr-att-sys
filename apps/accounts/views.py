@@ -40,6 +40,8 @@ class AppLoginView(LoginView):
             return "/student/"
         if user.role in {User.Role.LECTURER, User.Role.COURSE_REP}:
             return "/lecturer/"
+        if user.role == User.Role.HOD:
+            return "/hod/"
         return "/admin/"
 
 

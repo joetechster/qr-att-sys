@@ -661,6 +661,21 @@ tbody tr:last-child td {
     color: #52606d;
 }
 
+.status-submitted {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.status-reviewed {
+    background: #e9f0f4;
+    color: var(--brand);
+}
+
+.status-resolved {
+    background: var(--success-soft);
+    color: var(--success);
+}
+
 .empty-state {
     display: grid;
     gap: 8px;

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Complaint #{{ complaint.id }}{% endblock %}
+{% block content %}
+<section class="hero-panel">
+    <div class="page-copy">
+        <p class="eyebrow">Complaint #{{ complaint.id }}</p>
+        <h1 class="page-title">{{ complaint.subject }}</h1>
+        <p class="page-kicker">
+            Filed {{ complaint.created_at }} by
+            {% if complaint.is_anonymous %}<strong>Anonymous</strong>{% else %}<strong>{{ complaint.student.get_full_name|default:complaint.student.username }}</strong>{% endif %}.
+        </p>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'hod:dashboard' %}" class="btn btn-secondary">&larr; Back to all complaints</a>
+    </div>
+</section>
+
+<div class="grid grid-main">
+    <section class="table-panel">
+        <div class="panel-header">
+            <div class="section-title">
+                <div>
+                    <h2>Details</h2>
+                </div>
+            </div>
+        </div>
+        <div class="form-stack" style="padding: 20px;">
+            <div class="field">
+                <label>Status</label>
+                <div><span class="status-pill status-{{ complaint.status }}">{{ complaint.get_status_display }}</span></div>
+            </div>
+            <div class="field">
+                <label>About</label>
+                <div>
+                    {% if complaint.course %}<span class="code-pill">{{ complaint.course.code }}</span> {{ complaint.course.title }}<br>{% endif %}
+                    {% if complaint.lecturer %}Lecturer: {{ complaint.lecturer.get_full_name|default:complaint.lecturer.username }}<br>{% endif %}
+                    {% if not complaint.course and not complaint.lecturer %}<span class="muted">General complaint</span>{% endif %}
+                </div>
+            </div>
+            <div class="field">
+                <label>Description</label>
+                <div>{{ complaint.body|linebreaksbr }}</div>
+            </div>
+            {% if complaint.responded_by %}
+                <div class="field">
+                    <label>Last updated by</label>
+                    <div>{{ complaint.responded_by.get_full_name|default:complaint.responded_by.username }} on {{ complaint.updated_at }}</div>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="table-panel">
+        <div class="panel-header">
+            <div class="section-title">
+                <div>
+                    <h2>Review</h2>
+                    <p class="muted">Update status and write a response visible to the student.</p>
+                </div>
+            </div>
+        </div>
+        <form method="post" class="form-stack" style="padding: 20px;" novalidate>
+            {% csrf_token %}
+            <div class="field">
+                <label for="{{ form.status.id_for_label }}">Status</label>
+                {{ form.status }}
+            </div>
+            <div class="field">
+                <label for="{{ form.hod_response.id_for_label }}">Response</label>
+                {{ form.hod_response }}
+            </div>
+            <div class="action-row">
+                <button class="btn" type="submit">Save</button>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}
