@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}My profile{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">{{ user.get_role_display }}</p>
+        <h1 class="page-title">{{ user.get_full_name|default:user.username }}</h1>
+        <p class="page-kicker">Your account details. Everything else about your record — role, courses, attendance — is managed by your department.</p>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'password_change' %}" class="btn btn-secondary">Change password</a>
+    </div>
+</div>
+
+<div class="grid grid-main">
+    <section class="table-panel" aria-labelledby="details-title">
+        <div class="panel-header">
+            <div class="section-title">
+                <div>
+                    <h2 id="details-title">Personal details</h2>
+                    <p class="muted">Your username and role cannot be changed here.</p>
+                </div>
+            </div>
+        </div>
+        <form method="post" class="form-stack" style="padding: 20px;">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div class="static-field">
+                <label>Username</label>
+                <div><span class="code-pill">{{ user.username }}</span></div>
+            </div>
+            <div class="static-field">
+                <label>Role</label>
+                <div><span class="tag">{{ user.get_role_display }}</span></div>
+            </div>
+            <div class="field">
+                <label for="{{ form.first_name.id_for_label }}">First name</label>
+                {{ form.first_name }}<small class="error">{{ form.first_name.errors|join:" " }}</small>
+            </div>
+            <div class="field">
+                <label for="{{ form.last_name.id_for_label }}">Last name</label>
+                {{ form.last_name }}<small class="error">{{ form.last_name.errors|join:" " }}</small>
+            </div>
+            <div class="field">
+                <label for="{{ form.email.id_for_label }}">Email</label>
+                {{ form.email }}<small class="error">{{ form.email.errors|join:" " }}</small>
+            </div>
+            <div class="action-row">
+                <button class="btn" type="submit">Save changes</button>
+            </div>
+        </form>
+    </section>
+
+    {% if student_profile %}
+        <section class="table-panel" aria-labelledby="student-title">
+            <div class="panel-header">
+                <div class="section-title">
+                    <div>
+                        <h2 id="student-title">Student record</h2>
+                        <p class="muted">Set at registration. Contact your HOD if any of it is wrong.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="form-stack" style="padding: 20px;">
+                <div class="static-field">
+                    <label>Matric number</label>
+                    <div><span class="code-pill">{{ student_profile.matric_number }}</span></div>
+                </div>
+                <div class="static-field">
+                    <label>Department</label>
+                    <div>{{ student_profile.department }}</div>
+                </div>
+                <div class="static-field">
+                    <label>Level</label>
+                    <div>{{ student_profile.level|default:"—" }}</div>
+                </div>
+                <div class="static-field">
+                    <label>Registered face</label>
+                    {% if student_profile.face_image %}
+                        <img src="{{ student_profile.face_image.url }}" alt="Your registered face photo"
+                             style="max-width: 180px; border-radius: var(--radius); border: 1px solid var(--line-strong);">
+                    {% else %}
+                        <div class="muted">No photo on file.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
+</div>
+{% endblock %}

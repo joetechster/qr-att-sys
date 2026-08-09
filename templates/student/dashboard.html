@@ -13,13 +13,18 @@
         <div class="stat-grid">
             <div class="stat">
                 <span class="stat-label">Courses</span>
-                <span class="stat-value">{{ enrollments|length }}</span>
+                <span class="stat-value">{{ course_count }}</span>
                 <span class="stat-caption">enrolled</span>
             </div>
             <div class="stat">
-                <span class="stat-label">Attendance</span>
-                <span class="stat-value">{{ attendance|length }}</span>
-                <span class="stat-caption">recent marks</span>
+                <span class="stat-label">Overall attendance</span>
+                {% if overall_percent is not None %}
+                    <span class="stat-value">{{ overall_percent }}%</span>
+                    <span class="stat-caption">{{ total_attended }} of {{ total_held }} class{{ total_held|pluralize:"es" }} across all courses</span>
+                {% else %}
+                    <span class="stat-value">—</span>
+                    <span class="stat-caption">no classes finished yet</span>
+                {% endif %}
             </div>
             <div class="stat">
                 <span class="stat-label">Verification</span>
@@ -40,22 +45,41 @@
             <div class="section-title">
                 <div>
                     <h2 id="student-courses-title">Your courses</h2>
-                    <p class="muted">Courses you can mark attendance for.</p>
+                    {# Only finished lectures count. A class that is still running
+                       isn't an absence yet, and one that hasn't started certainly
+                       isn't. #}
+                    <p class="muted">Attendance counts classes that have finished.</p>
                 </div>
             </div>
         </div>
-        {% if enrollments %}
+        {% if rows %}
             <div class="table-scroll">
-                <table>
+                <table class="table-stack">
                     <thead>
-                    <tr><th>Code</th><th>Title</th><th>Lecturer</th></tr>
+                    <tr><th>Code</th><th>Title</th><th>Lecturer</th><th>Attended</th><th>Rate</th></tr>
                     </thead>
                     <tbody>
-                    {% for e in enrollments %}
+                    {% for row in rows %}
                         <tr>
-                            <td><span class="code-pill">{{ e.course.code }}</span></td>
-                            <td>{{ e.course.title }}</td>
-                            <td>{{ e.course.lecturer.get_full_name|default:e.course.lecturer.username }}</td>
+                            <td data-label="Code"><span class="code-pill">{{ row.course.code }}</span></td>
+                            <td data-label="Title">{{ row.course.title }}</td>
+                            <td data-label="Lecturer">{{ row.course.lecturer.get_full_name|default:row.course.lecturer.username }}</td>
+                            <td data-label="Attended" class="nowrap">{{ row.attended }} of {{ row.held }}</td>
+                            <td data-label="Rate">
+                                {% if row.percent is not None %}
+                                    <span class="meter-row">
+                                        <span class="meter" role="progressbar"
+                                              aria-valuenow="{{ row.percent }}" aria-valuemin="0" aria-valuemax="100"
+                                              aria-label="Attendance for {{ row.course.code }}">
+                                            <span class="meter-fill{% if row.percent < 50 %} is-low{% elif row.percent < 75 %} is-mid{% endif %}"
+                                                  style="width: {{ row.percent }}%"></span>
+                                        </span>
+                                        <span class="meter-value">{{ row.percent }}%</span>
+                                    </span>
+                                {% else %}
+                                    <span class="muted">No classes yet</span>
+                                {% endif %}
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -81,16 +105,16 @@
         </div>
         {% if attendance %}
             <div class="table-scroll">
-                <table>
+                <table class="table-stack">
                     <thead>
-                    <tr><th>Course</th><th>Lecture</th><th>Marked at</th></tr>
+                    <tr><th>Course</th><th>Topic</th><th>Marked at</th></tr>
                     </thead>
                     <tbody>
                     {% for a in attendance %}
                         <tr>
-                            <td><span class="code-pill">{{ a.lecture.course.code }}</span></td>
-                            <td>{{ a.lecture.title }}</td>
-                            <td class="nowrap">{{ a.marked_at }}</td>
+                            <td data-label="Course"><span class="code-pill">{{ a.lecture.course.code }}</span></td>
+                            <td data-label="Topic">{{ a.lecture.title }}</td>
+                            <td data-label="Marked at" class="nowrap">{{ a.marked_at }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

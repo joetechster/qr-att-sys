@@ -4,58 +4,66 @@
 <section class="hero-panel">
     <div class="page-copy">
         <p class="eyebrow">Head of Department</p>
-        <h1 class="page-title">Department complaints</h1>
-        <p class="page-kicker">Review and respond to complaints filed by students about lecturers, courses, and general matters.</p>
+        <h1 class="page-title">Run the department catalogue.</h1>
+        <p class="page-kicker">Create courses, onboard lecturers, bulk-import from CSV, and review student complaints from one console.</p>
         <div class="stat-grid">
             <div class="stat">
-                <span class="stat-label">Total</span>
-                <span class="stat-value">{{ complaints|length }}</span>
-                <span class="stat-caption">{% if status_filter %}filtered{% else %}all complaints{% endif %}</span>
+                <span class="stat-label">Courses</span>
+                <span class="stat-value">{{ course_count }}</span>
+                <span class="stat-caption">in the catalogue</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Lecturers</span>
+                <span class="stat-value">{{ lecturer_count }}</span>
+                <span class="stat-caption">accounts</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Lectures</span>
+                <span class="stat-value">{{ lecture_count }}</span>
+                <span class="stat-caption">scheduled by lecturers</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Complaints</span>
+                <span class="stat-value">{{ open_complaints }}</span>
+                <span class="stat-caption">awaiting review</span>
             </div>
         </div>
     </div>
     <div class="action-row">
-        <a href="{% url 'hod:dashboard' %}" class="btn {% if not status_filter %}{% else %}btn-secondary{% endif %}">All</a>
-        {% for value, label in status_choices %}
-            <a href="?status={{ value }}" class="btn {% if status_filter == value %}{% else %}btn-secondary{% endif %}">{{ label }}</a>
-        {% endfor %}
+        <a href="{% url 'hod:courses' %}" class="btn">Manage courses</a>
+        <a href="{% url 'course_create' %}" class="btn btn-secondary">New course</a>
+        <a href="{% url 'hod:create_lecturer' %}" class="btn btn-secondary">New lecturer</a>
+        <a href="{% url 'hod:import_lecturers' %}" class="btn btn-secondary">Import lecturers (CSV)</a>
+        <a href="{% url 'hod:import_courses' %}" class="btn btn-secondary">Import courses (CSV)</a>
+        <a href="{% url 'hod:complaints' %}" class="btn btn-secondary">Complaints</a>
     </div>
 </section>
 
-<section class="table-panel">
+<section class="table-panel" aria-labelledby="recent-courses-title">
     <div class="panel-header">
         <div class="section-title">
             <div>
-                <h2>Complaints</h2>
-                <p class="muted">Newest first. Click a row to review and respond.</p>
+                <h2 id="recent-courses-title">Recently added courses</h2>
+                <p class="muted">Lecturers schedule their own lectures against these.</p>
             </div>
+            <a href="{% url 'hod:lecturers' %}" class="btn btn-secondary">Manage lecturers</a>
         </div>
     </div>
-    {% if complaints %}
+    {% if recent_courses %}
         <div class="table-scroll">
-            <table>
+            <table class="table-stack">
                 <thead>
-                <tr><th>Subject</th><th>Student</th><th>About</th><th>Filed</th><th>Status</th><th></th></tr>
+                <tr><th>Code</th><th>Title</th><th>Unit</th><th>Department</th><th>Lecturer</th><th></th></tr>
                 </thead>
                 <tbody>
-                {% for c in complaints %}
+                {% for c in recent_courses %}
                     <tr>
-                        <td>{{ c.subject }}</td>
-                        <td>
-                            {% if c.is_anonymous %}
-                                <span class="tag">Anonymous</span>
-                            {% else %}
-                                {{ c.student.get_full_name|default:c.student.username }}
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if c.course %}<span class="code-pill">{{ c.course.code }}</span>{% endif %}
-                            {% if c.lecturer %}<div class="muted">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</div>{% endif %}
-                            {% if not c.course and not c.lecturer %}<span class="muted">General</span>{% endif %}
-                        </td>
-                        <td class="nowrap">{{ c.created_at }}</td>
-                        <td><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
-                        <td class="table-actions"><a href="{% url 'hod:complaint_detail' c.id %}">Review</a></td>
+                        <td data-label="Code"><span class="code-pill">{{ c.code }}</span></td>
+                        <td data-label="Title">{{ c.title }}</td>
+                        <td data-label="Unit">{{ c.unit|default:"—" }}</td>
+                        <td data-label="Department">{{ c.department }}</td>
+                        <td data-label="Lecturer">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</td>
+                        <td class="table-actions"><a href="{% url 'course_detail' c.id %}">View</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -63,8 +71,9 @@
         </div>
     {% else %}
         <div class="empty-state">
-            <strong>No complaints to show</strong>
-            <span>{% if status_filter %}Nothing matches this filter.{% else %}When students file complaints, they appear here.{% endif %}</span>
+            <strong>No courses yet</strong>
+            <span>Create one by hand or upload a CSV to populate the catalogue.</span>
+            <a href="{% url 'course_create' %}" class="btn btn-secondary">Create course</a>
         </div>
     {% endif %}
 </section>

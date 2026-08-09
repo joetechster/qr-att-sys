@@ -6,12 +6,14 @@ import re
 import uuid
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from apps.accounts.decorators import role_required
 from apps.accounts.face_utils import FaceError, compare_to_encoding
 from apps.accounts.models import StudentProfile, User
 from apps.courses.models import Enrollment
@@ -34,18 +36,17 @@ def _decode_data_url(data_url: str) -> bytes:
         raise ValueError("Captured image is corrupted.") from exc
 
 
-@login_required
+@role_required(User.Role.STUDENT)
 def scan_page(request):
     """Render the scanner page. The token may be prefilled from QR deep-link."""
     return render(request, "student/scan.html", {"prefilled_token": request.GET.get("t", "")})
 
 
-@login_required
+# json=True: the scanner fetches this, so a refusal has to stay JSON. An HTML
+# login redirect here would surface to the student as an unreadable parse error.
+@role_required(User.Role.STUDENT, json=True, message="Only students can mark attendance.")
 @require_POST
 def verify(request):
-    if request.user.role != User.Role.STUDENT:
-        return JsonResponse({"ok": False, "error": "Only students can mark attendance."}, status=403)
-
     raw_token = (request.POST.get("token") or "").strip()
     image_data = request.POST.get("image", "")
 
@@ -137,6 +138,12 @@ def verify(request):
     except Exception as exc:  # last-resort guard
         return JsonResponse({"ok": False, "error": f"Server error: {exc}"}, status=500)
 
+    # Queued here rather than rendered inline: the scanner redirects to the
+    # dashboard, which renders it through the shared messages block.
+    messages.success(
+        request,
+        f"Attendance marked for {token.lecture.course.code} — {token.lecture.title}.",
+    )
     return JsonResponse(
         {
             "ok": True,
@@ -144,5 +151,6 @@ def verify(request):
             "lecture": token.lecture.title,
             "course": token.lecture.course.code,
             "distance": distance,
+            "redirect_url": reverse("student:dashboard"),
         }
     )

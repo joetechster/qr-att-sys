@@ -3,7 +3,8 @@
  *   2. If a token isn't already prefilled (from QR deep-link), keep scanning frames
  *      with jsQR until a valid PCU scan URL is recognised.
  *   3. Capture a selfie frame and POST {token, image} to /scan/verify/.
- *   4. Show success / error to the user. */
+ *   4. On success, confirm then redirect to the student dashboard; on failure,
+ *      show the error and offer a retry. */
 
 function initScanner(opts) {
     const { video, canvas, captureBtn, retakeBtn, switchBtn, statusEl, tokenInput, csrfToken, verifyUrl } = opts;
@@ -109,10 +110,16 @@ function initScanner(opts) {
             });
             const data = await res.json().catch(() => ({}));
             if (res.ok && data.ok) {
+                const dest = data.redirect_url || '/student/';
                 statusEl.innerHTML = '<strong>Success: ' + (data.message || 'Marked present') +
-                    '</strong> - ' + (data.course || '') + ' - ' + (data.lecture || '');
+                    '</strong> - ' + (data.course || '') + ' - ' + (data.lecture || '') +
+                    '<br>Returning to your dashboard... ' +
+                    '<a href="' + dest + '">Go now</a>';
                 captureBtn.style.display = 'none';
                 retakeBtn.style.display = 'none';
+                // Short pause so the confirmation is readable; the link above is
+                // the fallback if the timer never fires.
+                setTimeout(function () { window.location.assign(dest); }, 1800);
             } else {
                 statusEl.textContent = 'Error: ' + (data.error || 'Could not mark attendance.');
                 retakeBtn.style.display = '';

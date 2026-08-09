@@ -5,11 +5,11 @@ from apps.courses.models import Course
 
 
 SAMPLES = [
-    ("CSC101", "Introduction to Computing", "Computer Science"),
-    ("MTH101", "Elementary Mathematics I", "Mathematics"),
-    ("ENG101", "Use of English", "General Studies"),
-    ("PHY101", "General Physics I", "Physics"),
-    ("GST101", "Communication Skills", "General Studies"),
+    ("CSC101", "Introduction to Computing", 3, "Computer Science"),
+    ("MTH101", "Elementary Mathematics I", 3, "Mathematics"),
+    ("ENG101", "Use of English", 2, "General Studies"),
+    ("PHY101", "General Physics I", 3, "Physics"),
+    ("GST101", "Communication Skills", 2, "General Studies"),
 ]
 
 
@@ -44,13 +44,13 @@ class Command(BaseCommand):
             lecturer = lecturers.first()
 
         created = skipped = 0
-        for code, title, dept in SAMPLES:
+        for code, title, unit, dept in SAMPLES:
             if Course.objects.filter(code=code).exists():
                 self.stdout.write(f"  skip   {code} (exists)")
                 skipped += 1
                 continue
             Course.objects.create(
-                code=code, title=title, department=dept, lecturer=lecturer
+                code=code, title=title, unit=unit, department=dept, lecturer=lecturer
             )
             self.stdout.write(
                 self.style.SUCCESS(f"  create {code} -> {lecturer.username}")

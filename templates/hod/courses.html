@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Courses{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Head of Department</p>
+        <h1 class="page-title">Courses</h1>
+        <p class="page-kicker">The department catalogue. Edit a course to change its credit units, its course rep, or the lecturer teaching it.</p>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'course_create' %}" class="btn">New course</a>
+        <a href="{% url 'hod:import_courses' %}" class="btn btn-secondary">Import CSV</a>
+    </div>
+</div>
+
+<section class="table-panel" aria-labelledby="courses-title">
+    <div class="panel-header">
+        <div class="section-title">
+            <div>
+                <h2 id="courses-title">All courses</h2>
+                <p class="muted">{{ total }} course{{ total|pluralize }} in the catalogue.</p>
+            </div>
+        </div>
+    </div>
+    {% if page.object_list %}
+        <div class="table-scroll">
+            <table class="table-stack">
+                <thead>
+                <tr><th>Code</th><th>Title</th><th>Unit</th><th>Department</th><th>Lecturer</th><th>Course rep</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for c in page.object_list %}
+                    <tr>
+                        <td data-label="Code"><span class="code-pill">{{ c.code }}</span></td>
+                        <td data-label="Title">{{ c.title }}</td>
+                        <td data-label="Unit">{{ c.unit|default:"—" }}</td>
+                        <td data-label="Department">{{ c.department }}</td>
+                        <td data-label="Lecturer">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</td>
+                        <td data-label="Course rep">{{ c.course_rep|default:"Not assigned" }}</td>
+                        <td class="table-actions">
+                            <a href="{% url 'hod:course_edit' c.id %}">Edit</a>
+                            <a href="{% url 'course_detail' c.id %}">View</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if page.has_other_pages %}
+            <div class="panel-header">
+                <div class="action-row">
+                    {% if page.has_previous %}
+                        <a class="btn btn-secondary btn-sm" href="?page={{ page.previous_page_number }}">Previous</a>
+                    {% endif %}
+                    <span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+                    {% if page.has_next %}
+                        <a class="btn btn-secondary btn-sm" href="?page={{ page.next_page_number }}">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state">
+            <strong>No courses yet</strong>
+            <span>Add one by hand or upload the department CSV.</span>
+            <a href="{% url 'course_create' %}" class="btn btn-secondary">New course</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

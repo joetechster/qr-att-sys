@@ -7,8 +7,11 @@
         <h1 class="page-title">My complaints</h1>
         <p class="page-kicker">Track the status and any response from the Head of Department.</p>
     </div>
-    <div class="action-row">
-        <a href="{% url 'complaints:submit' %}" class="btn">File a new complaint</a>
+    <div class="complaint-cta">
+        <p class="muted">Something wrong with a course, a lecturer, or an attendance mark that
+            didn't register? File a complaint and the Head of Department will review it. You can
+            send it anonymously.</p>
+        <a href="{% url 'complaints:submit' %}" class="btn btn-secondary btn-sm">File a complaint</a>
     </div>
 </section>
 
@@ -23,22 +26,22 @@
     </div>
     {% if complaints %}
         <div class="table-scroll">
-            <table>
+            <table class="table-stack">
                 <thead>
                 <tr><th>Subject</th><th>About</th><th>Filed</th><th>Status</th><th>Response</th></tr>
                 </thead>
                 <tbody>
                 {% for c in complaints %}
                     <tr>
-                        <td>{{ c.subject }}{% if c.is_anonymous %} <span class="tag">anonymous</span>{% endif %}</td>
-                        <td>
+                        <td data-label="Subject">{{ c.subject }}{% if c.is_anonymous %} <span class="tag">anonymous</span>{% endif %}</td>
+                        <td data-label="About">
                             {% if c.course %}<span class="code-pill">{{ c.course.code }}</span>{% endif %}
                             {% if c.lecturer %}<div class="muted">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</div>{% endif %}
                             {% if not c.course and not c.lecturer %}<span class="muted">General</span>{% endif %}
                         </td>
-                        <td class="nowrap">{{ c.created_at }}</td>
-                        <td><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
-                        <td>
+                        <td class="nowrap" data-label="Filed">{{ c.created_at }}</td>
+                        <td data-label="Status"><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
+                        <td data-label="Response">
                             {% if c.hod_response %}
                                 {{ c.hod_response|linebreaksbr }}
                             {% else %}
@@ -54,7 +57,7 @@
         <div class="empty-state">
             <strong>No complaints filed</strong>
             <span>If you have an issue, raise it here for the Head of Department to see.</span>
-            <a href="{% url 'complaints:submit' %}" class="btn btn-secondary">File a complaint</a>
+            <a href="{% url 'complaints:submit' %}" class="btn btn-secondary btn-sm">File a complaint</a>
         </div>
     {% endif %}
 </section>

@@ -61,16 +61,16 @@
         </div>
         {% if lectures %}
             <div class="table-scroll">
-                <table>
+                <table class="table-stack">
                     <thead>
-                    <tr><th>Title</th><th>Start</th><th>Status</th></tr>
+                    <tr><th>Topic</th><th>Start</th><th>Status</th></tr>
                     </thead>
                     <tbody>
                     {% for l in lectures %}
                         <tr>
-                            <td>{% if user.is_privileged %}<a href="{% url 'lecturer:lecture_detail' l.id %}">{{ l.title }}</a>{% else %}{{ l.title }}{% endif %}</td>
-                            <td class="nowrap">{{ l.scheduled_start }}</td>
-                            <td><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
+                            <td data-label="Topic">{% if user.is_privileged %}<a href="{% url 'lecturer:lecture_detail' l.id %}">{{ l.title }}</a>{% else %}{{ l.title }}{% endif %}</td>
+                            <td class="nowrap" data-label="Start">{{ l.scheduled_start }}</td>
+                            <td data-label="Status"><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -96,16 +96,16 @@
     </div>
     {% if enrollments %}
         <div class="table-scroll">
-            <table>
+            <table class="table-stack">
                 <thead>
                 <tr><th>Matric</th><th>Name</th><th>Department</th></tr>
                 </thead>
                 <tbody>
                 {% for e in enrollments %}
                     <tr>
-                        <td><span class="code-pill">{{ e.student.student_profile.matric_number|default:"N/A" }}</span></td>
-                        <td>{{ e.student.get_full_name|default:e.student.username }}</td>
-                        <td>{{ e.student.student_profile.department|default:"N/A" }}</td>
+                        <td data-label="Matric"><span class="code-pill">{{ e.student.student_profile.matric_number|default:"N/A" }}</span></td>
+                        <td data-label="Name">{{ e.student.get_full_name|default:e.student.username }}</td>
+                        <td data-label="Department">{{ e.student.student_profile.department|default:"N/A" }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>

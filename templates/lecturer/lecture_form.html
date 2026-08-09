@@ -6,33 +6,33 @@
     <div class="page-heading">
         <p class="eyebrow">Lecture setup</p>
         <h1 class="page-title">Create lecture</h1>
-        <p class="page-kicker">Schedule the lecture, then open the live QR display when you are ready to start attendance.</p>
+        <p class="page-kicker">Schedule the lecture against one of your assigned courses, then open the live QR display when you are ready to start attendance.</p>
     </div>
 </div>
 
+{% if not form.has_courses %}
+    <section class="table-panel">
+        <div class="empty-state">
+            <strong>No courses are assigned to you</strong>
+            <span>Lectures are scheduled against a course from the department catalogue. Ask your
+                head of department to assign you one, then come back here.</span>
+            <a href="{% url 'lecturer:dashboard' %}" class="btn btn-secondary">Back to dashboard</a>
+        </div>
+    </section>
+{% else %}
 <section class="auth-panel" aria-labelledby="lecture-form-title">
     <h2 id="lecture-form-title">Lecture details</h2>
     <form method="post">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        {% if user.role == 'lecturer' %}
-            <fieldset class="row">
-                <legend>Course</legend>
-                {{ form.course_mode }}
-            </fieldset>
-        {% endif %}
-        <div class="row" data-mode="existing">
-            <label for="id_course">Existing course</label>{{ form.course }}{{ form.course.errors }}
+        <div class="row">
+            <label for="id_course">Course</label>{{ form.course }}{{ form.course.errors }}
+            <small class="muted">Only the courses assigned to you appear here.</small>
         </div>
-        {% if user.role == 'lecturer' %}
-            <div data-mode="new" hidden>
-                <div class="row"><label for="id_new_course_code">New course code</label>{{ form.new_course_code }}{{ form.new_course_code.errors }}</div>
-                <div class="row"><label for="id_new_course_title">New course title</label>{{ form.new_course_title }}{{ form.new_course_title.errors }}</div>
-                <div class="row"><label for="id_new_course_department">Department</label>{{ form.new_course_department }}{{ form.new_course_department.errors }}</div>
-                <div class="row"><label for="id_new_course_rep">Course rep (optional)</label>{{ form.new_course_rep }}{{ form.new_course_rep.errors }}</div>
-            </div>
-        {% endif %}
-        <div class="row"><label for="id_title">Title</label>{{ form.title }}{{ form.title.errors }}</div>
+        <div class="row">
+            <label for="id_title">Topic</label>{{ form.title }}{{ form.title.errors }}
+            <small class="muted">What this session covers — not the course name.</small>
+        </div>
         <div class="form-grid">
             <div class="row"><label for="id_scheduled_start">Scheduled start</label>{{ form.scheduled_start }}{{ form.scheduled_start.errors }}</div>
             <div class="row"><label for="id_scheduled_end">Scheduled end</label>{{ form.scheduled_end }}{{ form.scheduled_end.errors }}</div>
@@ -43,21 +43,5 @@
         </div>
     </form>
 </section>
-{% if user.role == 'lecturer' %}
-<script>
-(function () {
-    var radios = document.querySelectorAll('input[name="course_mode"]');
-    var existingBox = document.querySelector('[data-mode="existing"]');
-    var newBox = document.querySelector('[data-mode="new"]');
-    function sync() {
-        var checked = document.querySelector('input[name="course_mode"]:checked');
-        var v = checked ? checked.value : 'existing';
-        if (existingBox) existingBox.hidden = v !== 'existing';
-        if (newBox) newBox.hidden = v !== 'new';
-    }
-    radios.forEach(function (r) { r.addEventListener('change', sync); });
-    sync();
-})();
-</script>
 {% endif %}
 {% endblock %}

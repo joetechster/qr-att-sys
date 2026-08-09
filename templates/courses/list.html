@@ -16,24 +16,27 @@
                 <h2 id="courses-list-title">Available courses</h2>
                 <p class="muted">{{ courses|length }} course{{ courses|length|pluralize }} listed.</p>
             </div>
-            {% if user.role == 'lecturer' %}
+            {# course_create is HOD-only; this used to be gated on 'lecturer',
+               so the one role allowed to use it never saw the button. #}
+            {% if user.role == 'hod' %}
                 <a href="{% url 'course_create' %}" class="btn btn-secondary">+ New course</a>
             {% endif %}
         </div>
     </div>
     {% if courses %}
         <div class="table-scroll">
-            <table>
+            <table class="table-stack">
                 <thead>
-                <tr><th>Code</th><th>Title</th><th>Department</th><th>Lecturer</th><th></th></tr>
+                <tr><th>Code</th><th>Title</th><th>Unit</th><th>Department</th><th>Lecturer</th><th></th></tr>
                 </thead>
                 <tbody>
                 {% for c in courses %}
                     <tr>
-                        <td><span class="code-pill">{{ c.code }}</span></td>
-                        <td>{{ c.title }}</td>
-                        <td>{{ c.department }}</td>
-                        <td>{{ c.lecturer.get_full_name|default:c.lecturer.username }}</td>
+                        <td data-label="Code"><span class="code-pill">{{ c.code }}</span></td>
+                        <td data-label="Title">{{ c.title }}</td>
+                        <td data-label="Unit">{{ c.unit|default:"—" }}</td>
+                        <td data-label="Department">{{ c.department }}</td>
+                        <td data-label="Lecturer">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</td>
                         <td class="table-actions">
                             <a href="{% url 'course_detail' c.id %}">View</a>
                             {% if user.role == 'student' %}

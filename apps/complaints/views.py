@@ -1,34 +1,17 @@
 from __future__ import annotations
 
-from functools import wraps
-
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.accounts.decorators import role_required
 from apps.accounts.models import User
 
 from .forms import ComplaintForm, ComplaintReviewForm
 from .models import Complaint
 
 
-def _student_required(view):
-    @wraps(view)
-    def wrapped(request, *args, **kwargs):
-        if not request.user.is_authenticated or request.user.role != User.Role.STUDENT:
-            return redirect("/auth/login/")
-        return view(request, *args, **kwargs)
-
-    return wrapped
-
-
-def _hod_required(view):
-    @wraps(view)
-    def wrapped(request, *args, **kwargs):
-        if not request.user.is_authenticated or request.user.role != User.Role.HOD:
-            return redirect("/auth/login/")
-        return view(request, *args, **kwargs)
-
-    return wrapped
+_student_required = role_required(User.Role.STUDENT)
+_hod_required = role_required(User.Role.HOD)
 
 
 @_student_required
@@ -62,7 +45,7 @@ def hod_complaint_list(request):
         qs = qs.filter(status=status_filter)
     return render(
         request,
-        "hod/dashboard.html",
+        "hod/complaints.html",
         {
             "complaints": qs,
             "status_filter": status_filter,

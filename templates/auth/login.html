@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Login - PCU Attendance{% endblock %}
+{% block title %}Sign in - PCU Attendance{% endblock %}
 {% block content %}
 <div class="auth-layout">
     <aside class="auth-aside">
@@ -11,14 +11,23 @@
         <ul class="feature-list">
             <li><strong>Rotating QR codes</strong><br><span class="muted">Every successful scan advances the live code.</span></li>
             <li><strong>Face verification</strong><br><span class="muted">Students confirm attendance with a quick selfie.</span></li>
-            <li><strong>Role-aware dashboards</strong><br><span class="muted">Students and lecturers land exactly where they need to work.</span></li>
+            <li><strong>Role-aware dashboards</strong><br><span class="muted">Students, lecturers and heads of department each land exactly where they need to work.</span></li>
         </ul>
     </aside>
 
     <section class="auth-panel" aria-labelledby="login-title">
         <p class="eyebrow">Secure access</p>
         <h2 id="login-title">Welcome back</h2>
-        <p class="muted">Use your PCU Attendance credentials to continue.</p>
+        <p class="muted">Students, lecturers, course reps and heads of department all sign in here.</p>
+
+        {% if already_signed_in %}
+            <div class="form-alert">
+                <strong>You are already signed in as {{ already_signed_in.get_full_name|default:already_signed_in.username }} ({{ already_signed_in.get_role_display }}).</strong>
+                <span class="muted">Every tab in this browser shares one sign-in, so signing in below will
+                    replace it everywhere.</span>
+                <a href="{{ role_home }}">Go to my dashboard instead</a>
+            </div>
+        {% endif %}
 
         <form method="post">
             {% csrf_token %}
@@ -35,8 +44,8 @@
         </form>
 
         <p class="auth-switch muted">
-            New student? <a href="{% url 'register_student' %}">Create your student account</a>.<br>
-            Lecturer and admin accounts are created in <code>/admin/</code>.
+            New here? <a href="{% url 'register_student' %}">Sign up</a>.<br>
+            Lecturer accounts are issued by your head of department.
         </p>
     </section>
 </div>

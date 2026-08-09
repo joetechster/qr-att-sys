@@ -1,9 +1,13 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = "dev-only-change-me-in-production"
-DEBUG = True
+# Still True by default for development. Switchable because DEBUG=True bypasses
+# handler404 entirely — the custom error pages in templates/ can only be seen,
+# or tested by hand, with DJANGO_DEBUG=0.
+DEBUG = os.environ.get("DJANGO_DEBUG", "1") != "0"
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
@@ -20,6 +24,7 @@ INSTALLED_APPS = [
     "apps.lectures",
     "apps.attendance",
     "apps.complaints",
+    "apps.hod",
 ]
 
 MIDDLEWARE = [
@@ -28,6 +33,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.accounts.middleware.ForcePasswordChangeMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

@@ -11,6 +11,10 @@ class User(AbstractUser):
         HOD = "hod", "Head of Department"
 
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.STUDENT)
+    # Set when an account is provisioned with a temporary password (staff created
+    # by the HOD). ForcePasswordChangeMiddleware pins the user to the password
+    # change page until they clear it.
+    must_change_password = models.BooleanField(default=False)
 
     @property
     def is_privileged(self) -> bool:

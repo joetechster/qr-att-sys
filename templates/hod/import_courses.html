@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Import courses{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Bulk catalogue</p>
+        <h1 class="page-title">Import courses from CSV</h1>
+        <p class="page-kicker">Each row becomes a course assigned to an existing lecturer. Create the lecturer accounts first — rows naming an unknown lecturer are reported as errors, not silently skipped. Course reps are assigned later from the course page, not here.</p>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'hod:import_lecturers' %}" class="btn btn-secondary">Import lecturers first</a>
+        <a href="{% url 'course_list' %}" class="btn btn-secondary">View courses</a>
+    </div>
+</div>
+
+<section class="auth-panel" aria-labelledby="upload-title">
+    <h2 id="upload-title">Upload</h2>
+    {# Rendered from the view's constants so the prose and the sample can't
+       drift away from what the importer actually requires. #}
+    <p class="muted">Required columns:
+        {% for column in required_columns %}<code>{{ column }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}.
+        <code>unit</code> is the credit load and must be a whole number from 1 to 12.</p>
+<pre class="code-block">{{ required_columns|join:"," }}
+j.adeyemi,CSC301,Intro to Compilers,3,Computer Science
+b.okoro,CSC305,Operating Systems,2,Computer Science</pre>
+    <p class="muted">Files that still use the older <code>lecturer_username</code> heading are accepted too.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row"><label for="id_file">CSV file</label>{{ form.file }}{{ form.file.errors }}</div>
+        <div class="form-actions">
+            <button type="submit" class="primary">Import</button>
+        </div>
+    </form>
+</section>
+
+{% if result %}
+    {% if result.created %}
+        <section class="table-panel" aria-labelledby="created-title">
+            <div class="panel-header">
+                <div class="section-title">
+                    <div>
+                        <h2 id="created-title">Courses created</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="table-scroll">
+                <table class="table-stack">
+                    <thead><tr><th>Line</th><th>Code</th><th>Title</th><th>Unit</th><th>Lecturer</th></tr></thead>
+                    <tbody>
+                    {% for row in result.created %}
+                        <tr>
+                            <td data-label="Line">{{ row.line }}</td>
+                            <td data-label="Code"><span class="code-pill">{{ row.code }}</span></td>
+                            <td data-label="Title">{{ row.title }}</td>
+                            <td data-label="Unit">{{ row.unit }}</td>
+                            <td data-label="Lecturer">{{ row.lecturer }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+    {% include "hod/_import_result.html" %}
+{% endif %}
+{% endblock %}

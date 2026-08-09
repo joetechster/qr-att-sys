@@ -1,12 +1,21 @@
 {% extends "base.html" %}
-{% block title %}New course{% endblock %}
+{% comment %}
+Serves both `course_create` and `hod:course_edit`. The presence of `course` in
+the context is what distinguishes them.
+{% endcomment %}
+{% block title %}{% if course %}Edit {{ course.code }}{% else %}New course{% endif %}{% endblock %}
 {% block main_class %}narrow{% endblock %}
 {% block content %}
 <div class="page-header">
     <div class="page-heading">
         <p class="eyebrow">Course setup</p>
-        <h1 class="page-title">Create course</h1>
-        <p class="page-kicker">Add a course you teach. You'll be set as the lecturer automatically; assign a course rep now or later.</p>
+        {% if course %}
+            <h1 class="page-title">Edit {{ course.code }}</h1>
+            <p class="page-kicker">Change the credit units, the course rep, or reassign the course to a different lecturer. Lectures already scheduled against it stay where they are.</p>
+        {% else %}
+            <h1 class="page-title">Create course</h1>
+            <p class="page-kicker">Add a course to the department catalogue and assign the lecturer who will run it. A course rep can be set now or later.</p>
+        {% endif %}
     </div>
 </div>
 
@@ -15,13 +24,24 @@
     <form method="post">
         {% csrf_token %}
         {{ form.non_field_errors }}
-        <div class="row"><label for="id_code">Code</label>{{ form.code }}{{ form.code.errors }}</div>
+        <div class="form-grid">
+            <div class="row"><label for="id_code">Code</label>{{ form.code }}{{ form.code.errors }}</div>
+            <div class="row">
+                <label for="id_unit">Unit</label>{{ form.unit }}{{ form.unit.errors }}
+                <small class="muted">{{ form.unit.help_text }}</small>
+            </div>
+        </div>
         <div class="row"><label for="id_title">Title</label>{{ form.title }}{{ form.title.errors }}</div>
         <div class="row"><label for="id_department">Department</label>{{ form.department }}{{ form.department.errors }}</div>
+        <div class="row"><label for="id_lecturer">Lecturer</label>{{ form.lecturer }}{{ form.lecturer.errors }}</div>
         <div class="row"><label for="id_course_rep">Course rep (optional)</label>{{ form.course_rep }}{{ form.course_rep.errors }}</div>
         <div class="form-actions">
-            <button type="submit" class="primary">Create course</button>
-            <a href="{% url 'course_list' %}" class="btn btn-quiet">Cancel</a>
+            <button type="submit" class="primary">{% if course %}Save changes{% else %}Create course{% endif %}</button>
+            {% if course %}
+                <a href="{% url 'hod:courses' %}" class="btn btn-quiet">Cancel</a>
+            {% else %}
+                <a href="{% url 'course_list' %}" class="btn btn-quiet">Cancel</a>
+            {% endif %}
         </div>
     </form>
 </section>

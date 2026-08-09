@@ -1,48 +1,140 @@
 /* Live webcam preview + single-shot capture into a hidden field as a data URL.
- * Used by the registration form. */
+ * Used by the registration form.
+ *
+ * Two things worth knowing:
+ *
+ * - The camera is NOT started on load. Call start() when the student actually reaches
+ *   the photo step, so the browser's permission prompt arrives with some context.
+ * - On a re-render after a validation error, Django echoes the submitted data URL back
+ *   into the hidden input. We restore it into the canvas instead of ignoring it, so a
+ *   typo in the username no longer costs the student their photo.
+ */
+
+const FACE_DATA_URL_RE = /^data:image\/(?:png|jpeg|jpg);base64,/;
+
+const CAMERA_ERRORS = {
+    NotAllowedError:
+        'Camera access was blocked. Allow the camera in your browser\'s address bar, then try again.',
+    NotFoundError: 'No camera was found on this device.',
+    NotReadableError: 'The camera is already in use by another app. Close it and try again.',
+    OverconstrainedError: 'No usable camera was found on this device.',
+};
 
 function initFaceCapture(opts) {
     const { video, canvas, captureBtn, retakeBtn, hiddenInput, statusEl, onReady, onCleared } = opts;
+    const retryBtn = opts.retryBtn || null;
     let stream = null;
 
-    async function startCamera() {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
-            video.srcObject = stream;
-            statusEl.textContent = 'Center your face in the frame, then click "Take photo".';
-        } catch (err) {
-            statusEl.textContent = 'Could not access camera: ' + err.message;
-        }
+    function setStatus(text, state) {
+        statusEl.textContent = text;
+        statusEl.classList.toggle('is-error', state === 'error');
+        statusEl.classList.toggle('is-ok', state === 'ok');
     }
 
-    function stopCamera() {
-        if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    }
-
-    captureBtn.addEventListener('click', () => {
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-        hiddenInput.value = dataUrl;
+    function showCaptured() {
         canvas.style.display = '';
         video.style.display = 'none';
         captureBtn.style.display = 'none';
         retakeBtn.style.display = '';
-        statusEl.textContent = 'Photo captured. Click Retake if you want to try again.';
-        stopCamera();
-        if (onReady) onReady();
-    });
+        if (retryBtn) retryBtn.style.display = 'none';
+    }
 
-    retakeBtn.addEventListener('click', async () => {
-        hiddenInput.value = '';
+    function showLive() {
         canvas.style.display = 'none';
         video.style.display = '';
         captureBtn.style.display = '';
         retakeBtn.style.display = 'none';
-        if (onCleared) onCleared();
-        await startCamera();
+        if (retryBtn) retryBtn.style.display = 'none';
+    }
+
+    function hasPhoto() {
+        return FACE_DATA_URL_RE.test(hiddenInput.value || '');
+    }
+
+    async function start() {
+        if (stream) return;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            setStatus(
+                'This browser can only use the camera over HTTPS or on localhost.',
+                'error'
+            );
+            if (retryBtn) retryBtn.style.display = '';
+            return;
+        }
+        setStatus('Starting the camera…');
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user' },
+                audio: false,
+            });
+            video.srcObject = stream;
+            showLive();
+            setStatus('Center your face in the frame, then take the photo.');
+        } catch (err) {
+            stream = null;
+            setStatus(CAMERA_ERRORS[err.name] || ('Could not access the camera: ' + err.message), 'error');
+            captureBtn.style.display = 'none';
+            if (retryBtn) retryBtn.style.display = '';
+        }
+    }
+
+    function stop() {
+        if (stream) {
+            stream.getTracks().forEach(function (track) { track.stop(); });
+            stream = null;
+        }
+    }
+
+    captureBtn.addEventListener('click', function () {
+        const ctx = canvas.getContext('2d');
+        // The preview is mirrored in CSS for a natural selfie feel; the canvas is not,
+        // so the stored face matches how a camera actually sees the student.
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        hiddenInput.value = canvas.toDataURL('image/jpeg', 0.9);
+        showCaptured();
+        setStatus('Photo captured. Retake it if you are not happy with this one.', 'ok');
+        stop();
+        if (onReady) onReady();
     });
 
-    startCamera();
+    retakeBtn.addEventListener('click', function () {
+        hiddenInput.value = '';
+        showLive();
+        if (onCleared) onCleared();
+        start();
+    });
+
+    if (retryBtn) retryBtn.addEventListener('click', start);
+    window.addEventListener('pagehide', stop);
+
+    /* Bring back the photo submitted with a request that failed validation. */
+    function restore() {
+        if (!hasPhoto()) return false;
+        const image = new Image();
+        image.onload = function () {
+            canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+        };
+        image.src = hiddenInput.value;
+        showCaptured();
+        setStatus(
+            opts.photoRejected
+                ? 'That photo was not accepted. Retake it, following the tips above.'
+                : 'Your photo is still here. Retake it if you want a different one.',
+            opts.photoRejected ? 'error' : 'ok'
+        );
+        if (onReady) onReady();
+        return true;
+    }
+
+    const restored = restore();
+    if (!restored) {
+        showLive();
+        captureBtn.style.display = 'none';
+        setStatus('Turn on your camera to take a reference photo.');
+        if (retryBtn) retryBtn.style.display = '';
+    }
+
+    return { start: start, stop: stop, hasPhoto: hasPhoto, restored: restored };
 }
+
 window.initFaceCapture = initFaceCapture;

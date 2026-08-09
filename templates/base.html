@@ -19,13 +19,13 @@
         </a>
         <nav aria-label="Primary navigation">
             {% if user.is_authenticated %}
-                <span class="nav-identity">
+                <a class="nav-identity" href="{% url 'profile' %}">
                     <span class="avatar">{{ user.get_role_display|slice:":2"|upper }}</span>
                     <span class="identity-text">
                         <span class="identity-name">{{ user.get_full_name|default:user.username }}</span>
                         <span class="identity-role">{{ user.get_role_display }}</span>
                     </span>
-                </span>
+                </a>
                 {% if user.role == 'student' %}
                     <a class="nav-link" href="{% url 'student:dashboard' %}">Dashboard</a>
                     <a class="nav-link" href="/scan/">Scan</a>
@@ -36,6 +36,8 @@
                 {% endif %}
                 {% if user.role == 'hod' %}
                     <a class="nav-link" href="{% url 'hod:dashboard' %}">HOD Dashboard</a>
+                    <a class="nav-link" href="{% url 'hod:lecturers' %}">Lecturers</a>
+                    <a class="nav-link" href="{% url 'hod:complaints' %}">Complaints</a>
                 {% endif %}
                 <a class="nav-link" href="{% url 'course_list' %}">Courses</a>
                 <form method="post" action="{% url 'logout' %}" class="inline">
@@ -44,7 +46,7 @@
                 </form>
             {% else %}
                 <a class="nav-link" href="{% url 'login' %}">Login</a>
-                <a class="btn" href="{% url 'register_student' %}">Student sign up</a>
+                <a class="btn" href="{% url 'register_student' %}">Sign up</a>
             {% endif %}
         </nav>
     </div>

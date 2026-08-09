@@ -1,0 +1,51 @@
+{% comment %}
+Deliberately standalone — it must NOT extend base.html.
+
+Django's handler500 renders this with an empty context: no context processors
+run, so there is no `user`, no `messages`, and no `request`. Anything base.html
+touches would raise a second exception while already handling the first, and
+the visitor would get a bare "A server error occurred". Everything here is
+inline and self-contained for the same reason.
+{% endcomment %}<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Something went wrong</title>
+<style>
+    :root { color-scheme: light; }
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: #f6f7f9;
+        color: #1b1f24;
+        font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    .box {
+        max-width: 460px;
+        background: #fff;
+        border: 1px solid #e3e6ea;
+        border-radius: 8px;
+        padding: 32px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+    }
+    .code { margin: 0; font-size: 42px; font-weight: 700; color: #98a2b3; letter-spacing: -1px; }
+    h1 { margin: 6px 0 12px; font-size: 22px; }
+    p { margin: 0 0 20px; color: #5b6472; }
+    a {
+        display: inline-block;
+        padding: 10px 18px;
+        border-radius: 6px;
+        background: #1b4dd8;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+    }
+</style>
+<div class="box">
+    <p class="code">500</p>
+    <h1>Something went wrong on our side.</h1>
+    <p>The page couldn't be loaded. Nothing you did caused this. Try again in a moment, and
+        tell your head of department if it keeps happening.</p>
+    <a href="/">Back to the start</a>
+</div>

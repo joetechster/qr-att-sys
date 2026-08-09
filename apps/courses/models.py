@@ -1,10 +1,19 @@
 from django.conf import settings
+from django.core.validators import MaxValueValidator
 from django.db import models
 
 
 class Course(models.Model):
     code = models.CharField(max_length=16, unique=True)
     title = models.CharField(max_length=128)
+    # 0 means "not recorded" — it keeps courses that predate this field valid
+    # under full_clean() instead of forcing a made-up credit load onto them.
+    # Both the form and the CSV importer require 1-12 for anything new.
+    unit = models.PositiveSmallIntegerField(
+        default=0,
+        validators=[MaxValueValidator(12)],
+        help_text="Credit units.",
+    )
     department = models.CharField(max_length=128)
     lecturer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -21,6 +30,9 @@ class Course(models.Model):
         limit_choices_to={"role": "course_rep"},
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("code",)
 
     def __str__(self) -> str:
         return f"{self.code} — {self.title}"

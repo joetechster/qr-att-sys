@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Import lecturers{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Bulk onboarding</p>
+        <h1 class="page-title">Import lecturers from CSV</h1>
+        <p class="page-kicker">Each row becomes a lecturer account with a generated temporary password. Rows whose username already exists are skipped, so a corrected file can safely be re-uploaded.</p>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'hod:lecturers' %}" class="btn btn-secondary">Back to lecturers</a>
+    </div>
+</div>
+
+<section class="auth-panel" aria-labelledby="upload-title">
+    <h2 id="upload-title">Upload</h2>
+    {# Rendered from the view's constants so the prose can't drift away from
+       what the importer actually requires. #}
+    <p class="muted">Required columns:
+        {% for column in required_columns %}<code>{{ column }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}.
+        Optional:
+        {% for column in optional_columns %}<code>{{ column }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}
+        — supply a <code>password</code> to use your own instead of a generated one.</p>
+<pre class="code-block">username,first_name,last_name,email
+j.adeyemi,Jumoke,Adeyemi,j.adeyemi@pcu.edu.ng
+b.okoro,Bright,Okoro,b.okoro@pcu.edu.ng</pre>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row"><label for="id_file">CSV file</label>{{ form.file }}{{ form.file.errors }}</div>
+        <div class="form-actions">
+            <button type="submit" class="primary">Import</button>
+        </div>
+    </form>
+</section>
+
+{% if result %}
+    {% if result.created %}
+        <section class="table-panel" aria-labelledby="created-title">
+            <div class="panel-header">
+                <div class="section-title">
+                    <div>
+                        <h2 id="created-title">Accounts created</h2>
+                        <p class="muted">Copy these passwords now — they are not stored and cannot be shown again.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="table-scroll">
+                <table class="table-stack">
+                    <thead><tr><th>Line</th><th>Name</th><th>Username</th><th>Temporary password</th></tr></thead>
+                    <tbody>
+                    {% for row in result.created %}
+                        <tr>
+                            <td data-label="Line">{{ row.line }}</td>
+                            <td data-label="Name">{{ row.name|default:"—" }}</td>
+                            <td data-label="Username"><span class="code-pill">{{ row.username }}</span></td>
+                            <td data-label="Temporary password"><span class="code-pill">{{ row.password }}</span></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    {% endif %}
+    {% include "hod/_import_result.html" %}
+{% endif %}
+{% endblock %}

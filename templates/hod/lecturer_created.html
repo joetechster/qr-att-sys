@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Lecturer account created{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Staff onboarding</p>
+        <h1 class="page-title">Account created</h1>
+        <p class="page-kicker">Hand these credentials to {{ lecturer.get_full_name|default:lecturer.username }}. This password is shown once and cannot be retrieved later — if it is lost, delete the account and create it again.</p>
+    </div>
+</div>
+
+<section class="auth-panel" aria-labelledby="credentials-title">
+    <h2 id="credentials-title">Temporary credentials</h2>
+    <div class="form-stack">
+        <div class="field">
+            <label>Username</label>
+            <div><span class="code-pill">{{ lecturer.username }}</span></div>
+        </div>
+        <div class="field">
+            <label>Temporary password</label>
+            <div><span class="code-pill">{{ password }}</span></div>
+        </div>
+    </div>
+    <p class="muted">They will be asked to set their own password the first time they sign in.</p>
+    <div class="form-actions">
+        <a href="{% url 'hod:create_lecturer' %}" class="btn">Create another</a>
+        <a href="{% url 'hod:lecturers' %}" class="btn btn-secondary">Back to lecturers</a>
+    </div>
+</section>
+{% endblock %}

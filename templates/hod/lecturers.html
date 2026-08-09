@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Lecturers{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Head of Department</p>
+        <h1 class="page-title">Lecturers</h1>
+        <p class="page-kicker">Accounts you have provisioned. Anyone still marked "temporary password" has not signed in and set their own password yet.</p>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'hod:create_lecturer' %}" class="btn">New lecturer</a>
+        <a href="{% url 'hod:import_lecturers' %}" class="btn btn-secondary">Import CSV</a>
+    </div>
+</div>
+
+<section class="table-panel" aria-labelledby="lecturers-title">
+    <div class="panel-header">
+        <div class="section-title">
+            <div>
+                <h2 id="lecturers-title">All lecturers</h2>
+                <p class="muted">{{ lecturers|length }} account{{ lecturers|length|pluralize }}.</p>
+            </div>
+        </div>
+    </div>
+    {% if lecturers %}
+        <div class="table-scroll">
+            <table class="table-stack">
+                <thead>
+                <tr><th>Name</th><th>Username</th><th>Email</th><th>Courses</th><th>Password</th></tr>
+                </thead>
+                <tbody>
+                {% for l in lecturers %}
+                    <tr>
+                        <td data-label="Name">{{ l.get_full_name|default:l.username }}</td>
+                        <td data-label="Username"><span class="code-pill">{{ l.username }}</span></td>
+                        <td data-label="Email">{{ l.email|default:"—" }}</td>
+                        <td data-label="Courses">{{ l.courses_taught.count }}</td>
+                        <td data-label="Password">
+                            {% if l.must_change_password %}
+                                <span class="tag">Temporary</span>
+                            {% else %}
+                                <span class="muted">Set by lecturer</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <strong>No lecturer accounts yet</strong>
+            <span>Create one by hand or upload a CSV.</span>
+            <a href="{% url 'hod:create_lecturer' %}" class="btn btn-secondary">New lecturer</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

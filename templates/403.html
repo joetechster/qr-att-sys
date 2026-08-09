@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Not allowed{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<section class="error-page">
+    <p class="error-code">403</p>
+    <h1 class="page-title">You don't have access to that.</h1>
+    <p class="page-kicker">This page is restricted to a different role. If you believe you should
+        be able to open it, ask your head of department to check your account.</p>
+    <div class="action-row">
+        {% if user.is_authenticated %}
+            <a class="btn" href="/">Back to my dashboard</a>
+            <form method="post" action="{% url 'logout' %}" class="inline">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'login' %}">
+                <button type="submit" class="btn btn-secondary">Sign out &amp; use another account</button>
+            </form>
+        {% else %}
+            <a class="btn" href="{% url 'login' %}">Sign in</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

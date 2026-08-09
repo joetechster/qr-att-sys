@@ -4,10 +4,13 @@ Web-based lecture attendance system for Precious Cornerstone University. Lecture
 
 ## Features
 
-- Three privileged roles: `admin`, `lecturer`, `course_rep`. Plus `student`.
+- Roles: `admin`, `hod`, `lecturer`, `course_rep`, `student`.
 - Student self-registration with one-time live face capture (encoded with `face_recognition`).
-- Lecturer dashboard: create lectures, start lectures, show rotating QR, end lectures.
-- One-shot QR tokens — every successful scan immediately invalidates the current code and the lecturer's screen rotates within ~1 second.
+- HOD console: owns the course catalogue, provisions lecturer accounts (with generated temporary passwords), bulk-imports lecturers and courses from CSV, and reviews student complaints.
+- Lecturer dashboard: schedule lectures against assigned courses, start lectures, show rotating QR, end lectures.
+- Staff accounts created with a temporary password are locked to the password-change page until they set their own.
+- Personal profile page for every role at `/auth/profile/`.
+- One-shot QR tokens — every successful scan immediately invalidates the current code and the lecturer's screen rotates within ~1 second. A successful scan returns the student to their dashboard.
 - Course enrollment required for attendance.
 - Server-side face match (Euclidean distance < 0.6 by default).
 - Centralized SQLite database with full Django admin.
@@ -21,6 +24,8 @@ apps/
   courses/        # Course, Enrollment
   lectures/       # Lecture, QRToken, rotating QR display
   attendance/     # AttendanceRecord, scan + verify endpoint
+  complaints/     # Complaint, student submission + HOD review
+  hod/            # HOD console: lecturer accounts + CSV imports (no models)
 templates/        # Django templates
 static/           # JS + CSS
 ```
@@ -57,13 +62,37 @@ The `--no-deps` flag is critical: `face_recognition`'s metadata asks pip for the
 ## First run
 
 1. Visit `http://localhost:8000/admin/` and log in as the superuser you created.
-2. Edit your superuser, set role = `admin` (it should already be set if you used `createsuperuser` — otherwise change via the Role panel).
-3. Add a couple of users with role = `lecturer`. Then create a `Course` and assign one of those lecturers.
-4. Visit `/auth/register/student/` (in a normal browser tab) and register one or two students. The face capture happens in-browser.
-5. Sign in as a student → enroll in the course at `/courses/`.
-6. Sign in as the lecturer → "+ Create lecture" → fill in start/end times → click "Start lecture". A live QR will appear.
-7. On a second device (or another browser tab on the same machine), sign in as the student → click "Scan to mark attendance" → point camera at the lecturer's QR → take a selfie. After verification you'll see "Attendance marked" and the lecturer's QR will rotate.
-8. Try scanning the **old** QR (e.g. from a screenshot you took before rotation). It will be rejected with "code expired".
+2. Add one user with role = `hod`, and give them a password. Everything below is done from the app, not the admin.
+3. Sign in as the HOD at `/auth/login/` → `/hod/`.
+   - **New lecturer** creates one account and shows its temporary password once — write it down.
+   - **Import lecturers (CSV)** does the same in bulk; the result table lists every generated password.
+   - **New course** (or **Import courses (CSV)**) adds courses and assigns each to a lecturer.
+4. Sign in as a lecturer with the temporary password. You'll be held on the password-change page until you set your own.
+5. Visit `/auth/register/student/` (in a normal browser tab) and register one or two students. The face capture happens in-browser.
+6. Sign in as a student → enroll in the course at `/courses/`.
+7. Sign in as the lecturer → "Create lecture" → pick one of your assigned courses, fill in start/end times → click "Start lecture". A live QR will appear.
+8. On a second device (or another browser tab on the same machine), sign in as the student → "Scan" → point camera at the lecturer's QR → take a selfie. After verification you land back on the student dashboard with "Attendance marked", and the lecturer's QR rotates.
+9. Try scanning the **old** QR (e.g. from a screenshot you took before rotation). It will be rejected with "code expired".
+
+### CSV formats
+
+```csv
+# lecturers — required: username, first_name, last_name; optional: email, password
+username,first_name,last_name,email
+j.adeyemi,Jumoke,Adeyemi,j.adeyemi@pcu.edu.ng
+
+# courses — required: code, title, department, lecturer_username; optional: course_rep_username
+code,title,department,lecturer_username
+CSC301,Intro to Compilers,Computer Science,j.adeyemi
+```
+
+Rows whose key already exists are **skipped**, not errored, so a corrected file can be re-uploaded safely.
+
+## Tests
+
+```powershell
+python manage.py test
+```
 
 ## HTTPS / Camera access from phones
 

@@ -2,21 +2,18 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
+from apps.accounts.decorators import role_required
+from apps.accounts.models import User
+
 from .forms import CourseForm
 from .models import Course
 
 
-def _lecturer_required(view):
-    def wrapped(request, *args, **kwargs):
-        if not request.user.is_authenticated or request.user.role != "lecturer":
-            messages.error(
-                request,
-                "Only lecturers can create courses here. Admins use /admin/.",
-            )
-            return redirect("course_list")
-        return view(request, *args, **kwargs)
-
-    return wrapped
+_hod_required = role_required(
+    User.Role.HOD,
+    redirect_to="course_list",
+    message="Only the HOD can create courses.",
+)
 
 
 @login_required
@@ -47,14 +44,12 @@ def course_detail(request, course_id: int):
 
 
 @login_required
-@_lecturer_required
+@_hod_required
 def create_course(request):
     if request.method == "POST":
         form = CourseForm(request.POST)
         if form.is_valid():
-            course = form.save(commit=False)
-            course.lecturer = request.user
-            course.save()
+            course = form.save()
             messages.success(request, f"Course {course.code} created.")
             return redirect("course_detail", course_id=course.pk)
     else:

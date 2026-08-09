@@ -1,0 +1,57 @@
+{% comment %}
+Shared result panel for the CSV importers. Expects `result` with
+`created` / `skipped` / `errors` lists. The including template renders its own
+"created" section before including this one — the columns differ per import.
+{% endcomment %}
+<section class="table-panel" aria-labelledby="import-result-title">
+    <div class="panel-header">
+        <div class="section-title">
+            <div>
+                <h2 id="import-result-title">Import result</h2>
+                <p class="muted">
+                    {{ result.created|length }} created,
+                    {{ result.skipped|length }} skipped,
+                    {{ result.errors|length }} failed.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if result.skipped %}
+        <div class="table-scroll">
+            <table class="table-stack">
+                <thead><tr><th>Line</th><th>Skipped</th><th>Reason</th></tr></thead>
+                <tbody>
+                {% for row in result.skipped %}
+                    <tr>
+                        <td data-label="Line">{{ row.line }}</td>
+                        {# `default:` would eagerly resolve the missing key and blow up. #}
+                        <td data-label="Skipped"><span class="code-pill">{% if row.username %}{{ row.username }}{% else %}{{ row.code }}{% endif %}</span></td>
+                        <td class="muted" data-label="Reason">{{ row.detail }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if result.errors %}
+        <div class="table-scroll">
+            <table class="table-stack">
+                <thead><tr><th>Line</th><th>Error</th></tr></thead>
+                <tbody>
+                {% for row in result.errors %}
+                    <tr><td data-label="Line">{{ row.line }}</td><td data-label="Error">{{ row.detail }}</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+
+    {% if not result.created and not result.skipped and not result.errors %}
+        <div class="empty-state">
+            <strong>Nothing to import</strong>
+            <span>The file had no usable data rows.</span>
+        </div>
+    {% endif %}
+</section>

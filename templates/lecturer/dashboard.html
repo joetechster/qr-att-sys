@@ -5,7 +5,7 @@
     <div class="page-copy">
         <p class="eyebrow">Lecturer workspace</p>
         <h1 class="page-title">Run attendance with confidence.</h1>
-        <p class="page-kicker">Create lectures, launch rotating QR codes, and monitor verified attendance from one focused workspace.</p>
+        <p class="page-kicker">Schedule lectures for your assigned courses, launch rotating QR codes, and monitor verified attendance from one focused workspace.</p>
         <div class="stat-grid">
             <div class="stat">
                 <span class="stat-label">Courses</span>
@@ -26,9 +26,6 @@
     </div>
     <div class="action-row">
         <a href="{% url 'lecturer:create_lecture' %}" class="btn">Create lecture</a>
-        {% if user.role == 'lecturer' %}
-            <a href="{% url 'course_create' %}" class="btn btn-secondary">New course</a>
-        {% endif %}
         <a href="{% url 'course_list' %}" class="btn btn-secondary">View courses</a>
     </div>
 </section>
@@ -41,24 +38,22 @@
                     <h2 id="courses-title">Your courses</h2>
                     <p class="muted">Courses where you can manage lecture attendance.</p>
                 </div>
-                {% if user.role == 'lecturer' %}
-                    <a href="{% url 'course_create' %}" class="btn btn-secondary">+ New course</a>
-                {% endif %}
             </div>
         </div>
         {% if courses %}
             <div class="table-scroll">
-                <table>
+                <table class="table-stack">
                     <thead>
-                    <tr><th>Code</th><th>Title</th><th>Department</th><th>Course rep</th><th></th></tr>
+                    <tr><th>Code</th><th>Title</th><th>Unit</th><th>Department</th><th>Course rep</th><th></th></tr>
                     </thead>
                     <tbody>
                     {% for c in courses %}
                         <tr>
-                            <td><span class="code-pill">{{ c.code }}</span></td>
-                            <td>{{ c.title }}</td>
-                            <td>{{ c.department }}</td>
-                            <td>{{ c.course_rep|default:"Not assigned" }}</td>
+                            <td data-label="Code"><span class="code-pill">{{ c.code }}</span></td>
+                            <td data-label="Title">{{ c.title }}</td>
+                            <td data-label="Unit">{{ c.unit|default:"—" }}</td>
+                            <td data-label="Department">{{ c.department }}</td>
+                            <td data-label="Course rep">{{ c.course_rep|default:"Not assigned" }}</td>
                             <td class="table-actions"><a href="{% url 'course_detail' c.id %}">View</a></td>
                         </tr>
                     {% endfor %}
@@ -67,14 +62,8 @@
             </div>
         {% else %}
             <div class="empty-state">
-                {% if user.role == 'lecturer' %}
-                    <strong>No courses yet</strong>
-                    <span>Get started by creating your first course.</span>
-                    <a href="{% url 'course_create' %}" class="btn btn-secondary">Create course</a>
-                {% else %}
-                    <strong>No courses assigned</strong>
-                    <span>Ask the admin to assign courses in <code>/admin/</code>.</span>
-                {% endif %}
+                <strong>No courses assigned</strong>
+                <span>Ask your HOD to assign you a course before scheduling lectures.</span>
             </div>
         {% endif %}
     </section>
@@ -90,17 +79,19 @@
         </div>
         {% if lectures %}
             <div class="table-scroll">
-                <table>
+                <table class="table-stack">
                     <thead>
-                    <tr><th>Title</th><th>Course</th><th>Start</th><th>Status</th><th></th></tr>
+                    {# "Topic", not "Title" — the courses table above has its own
+                       Title column and two on one page read as the same thing. #}
+                    <tr><th>Topic</th><th>Course</th><th>Start</th><th>Status</th><th></th></tr>
                     </thead>
                     <tbody>
                     {% for l in lectures %}
                         <tr>
-                            <td>{{ l.title }}</td>
-                            <td><span class="code-pill">{{ l.course.code }}</span></td>
-                            <td class="nowrap">{{ l.scheduled_start }}</td>
-                            <td><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
+                            <td data-label="Topic">{{ l.title }}</td>
+                            <td data-label="Course"><span class="code-pill">{{ l.course.code }}</span></td>
+                            <td class="nowrap" data-label="Start">{{ l.scheduled_start }}</td>
+                            <td data-label="Status"><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
                             <td class="table-actions"><a href="{% url 'lecturer:lecture_detail' l.id %}">Open</a></td>
                         </tr>
                     {% endfor %}

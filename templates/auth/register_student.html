@@ -1,87 +1,200 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Register - PCU Attendance{% endblock %}
+{% block title %}Create your account - PCU Attendance{% endblock %}
+{% block main_class %}narrow{% endblock %}
 {% block content %}
 <div class="page-header">
     <div class="page-heading">
         <p class="eyebrow">Student onboarding</p>
         <h1 class="page-title">Create your attendance profile</h1>
-        <p class="page-kicker">Register once, capture a clear reference photo, and use it for fast attendance checks during lectures.</p>
+        <p class="page-kicker">Two short steps: your details, then one clear photo. After that you are checked in to lectures with a scan and a selfie.</p>
     </div>
 </div>
 
 <section class="auth-panel" aria-labelledby="register-title">
-    <form method="post" id="reg-form">
+    <h2 id="register-title" class="visually-hidden">Student registration</h2>
+
+    <form method="post" id="reg-form" novalidate>
         {% csrf_token %}
-        {{ form.non_field_errors }}
 
-        <div class="section-title">
-            <div>
-                <h2 id="register-title">Student details</h2>
-                <p class="muted">Use your official academic information.</p>
+        <ol class="wizard-steps" aria-label="Registration progress">
+            <li class="wizard-step is-current" data-step-nav="1">
+                <span class="wizard-dot">1</span>
+                <span class="wizard-label">Your details</span>
+            </li>
+            <li class="wizard-step" data-step-nav="2">
+                <span class="wizard-dot">2</span>
+                <span class="wizard-label">Face photo</span>
+            </li>
+        </ol>
+
+        {% if form.non_field_errors %}
+            <div class="form-alert" role="alert" data-non-field-step="2">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
             </div>
-        </div>
+        {% endif %}
 
-        <div class="form-grid">
-            <div class="row"><label for="id_username">Username</label>{{ form.username }}{{ form.username.errors }}</div>
-            <div class="row"><label for="id_email">Email (optional)</label>{{ form.email }}</div>
-            <div class="row"><label for="id_first_name">First name</label>{{ form.first_name }}</div>
-            <div class="row"><label for="id_last_name">Last name</label>{{ form.last_name }}</div>
-            <div class="row"><label for="id_matric_number">Matric number</label>{{ form.matric_number }}{{ form.matric_number.errors }}</div>
-            <div class="row"><label for="id_department">Department</label>{{ form.department }}</div>
-            <div class="row"><label for="id_level">Level</label>{{ form.level }}</div>
-            <div class="row"><label for="id_password1">Password</label>{{ form.password1 }}{{ form.password1.errors }}</div>
-            <div class="row"><label for="id_password2">Confirm password</label>{{ form.password2 }}{{ form.password2.errors }}</div>
-        </div>
+        <fieldset class="wizard-panel" data-step="1">
+            <legend class="section-legend">
+                <span>Your details</span>
+                <small class="muted">Use your official academic information — it has to match your department's records.</small>
+            </legend>
 
-        <div class="capture-layout">
-            <div>
-                <div class="section-title">
-                    <div>
-                        <h2>Face capture</h2>
-                        <p class="muted">Center your face, keep the frame well lit, then take one clear photo.</p>
-                    </div>
+            <div class="form-stack">
+                <div class="form-grid">
+                    {% include "auth/_field.html" with field=form.first_name %}
+                    {% include "auth/_field.html" with field=form.last_name %}
+                    {% include "auth/_field.html" with field=form.matric_number %}
+                    {% include "auth/_field.html" with field=form.level control_class="control-select" %}
                 </div>
+
+                {% include "auth/_field.html" with field=form.department %}
+
+                <div class="form-grid">
+                    {% include "auth/_field.html" with field=form.username %}
+                    {% include "auth/_field.html" with field=form.email %}
+                </div>
+
+                {# Own grid: sharing one with username/email let those fields'
+                   heights push the password pair onto separate rows. #}
+                <div class="form-grid form-grid-tight">
+                    {% include "auth/_field.html" with field=form.password1 %}
+                    {% include "auth/_field.html" with field=form.password2 %}
+                    {% include "auth/_password_criteria.html" %}
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="primary" data-step-next>Continue to photo</button>
+                <a href="{% url 'login' %}" class="btn btn-quiet">Back to login</a>
+            </div>
+        </fieldset>
+
+        <fieldset class="wizard-panel" data-step="2" hidden>
+            <legend class="section-legend">
+                <span>Face photo</span>
+                <small class="muted">This is the reference photo your lecturers' scans are matched against.</small>
+            </legend>
+
+            <div class="capture-layout">
                 <div class="scan-stage">
                     <div class="camera-frame">
                         <video id="reg-video" autoplay playsinline muted width="320" height="240"></video>
                         <canvas id="reg-canvas" width="320" height="240" style="display:none;"></canvas>
                     </div>
-                    <p id="reg-status" class="status-box">Click "Take photo" once your face is centered.</p>
+                    <p id="reg-status" class="status-box" role="status">Turn on your camera to take a reference photo.</p>
                     <div class="action-row">
                         <button type="button" id="reg-capture" class="btn">Take photo</button>
                         <button type="button" id="reg-retake" class="btn btn-secondary" style="display:none;">Retake</button>
+                        <button type="button" id="reg-retry" class="btn btn-secondary" style="display:none;">Enable camera</button>
                     </div>
+                    <small class="error" id="face-error">{{ form.face_image_data.errors|join:" " }}</small>
                 </div>
+
+                <aside class="empty-state">
+                    <strong>For a photo that works</strong>
+                    <span>Face the camera straight on, find even lighting, and take off caps or anything covering your face.</span>
+                </aside>
             </div>
 
-            <aside class="empty-state">
-                <strong>Camera tip</strong>
-                <span>Face the camera directly and avoid shadows, caps, or anything blocking your face.</span>
-            </aside>
-        </div>
+            {{ form.face_image_data }}
 
-        {{ form.face_image_data }}
-
-        <div class="form-actions">
-            <button type="submit" class="primary" id="reg-submit" disabled>Create account</button>
-            <a href="{% url 'login' %}" class="btn btn-quiet">Back to login</a>
-        </div>
+            <div class="form-actions">
+                <button type="submit" class="primary" id="reg-submit" data-busy-label="Creating your account…">Create account</button>
+                <button type="button" class="btn btn-secondary" data-step-prev>Back to details</button>
+            </div>
+        </fieldset>
     </form>
+
+    <p class="auth-switch muted">
+        Already registered? <a href="{% url 'login' %}">Sign in</a>.<br>
+        Lecturer accounts are issued by your head of department.
+    </p>
 </section>
+
+{# Without JavaScript there is no stepper and no live validation, so show everything
+   and let the server do all the checking, exactly as this page used to work. #}
+<noscript>
+    <style>
+        .wizard-panel[hidden] { display: block !important; }
+        .wizard-steps, [data-step-next], [data-step-prev] { display: none !important; }
+    </style>
+</noscript>
 {% endblock %}
+
 {% block scripts %}
+<script src="{% static 'js/form_validate.js' %}"></script>
+<script src="{% static 'js/password_meter.js' %}"></script>
+<script src="{% static 'js/form_wizard.js' %}"></script>
 <script src="{% static 'js/face_capture.js' %}"></script>
 <script>
-    initFaceCapture({
+(function () {
+    const form = document.getElementById('reg-form');
+    const detailsPanel = form.querySelector('[data-step="1"]');
+    const faceError = document.getElementById('face-error');
+    const submitBtn = document.getElementById('reg-submit');
+
+    function valueOf(name) {
+        const input = form.elements[name];
+        return input ? input.value.trim() : '';
+    }
+
+    // Mirrors of the Django validators that have no native HTML equivalent. Anything
+    // stricter here than on the server would be a checkmark the server rejects, so
+    // these stay deliberately conservative.
+    window.formValidate.init(detailsPanel, {
+        password1: function (value) {
+            if (/^\d+$/.test(value)) return 'Your password cannot be only numbers.';
+            const personal = [valueOf('username'), valueOf('first_name'), valueOf('last_name')];
+            const lowered = value.toLowerCase();
+            const clash = personal.some(function (part) {
+                return part.length >= 3 && lowered.includes(part.toLowerCase());
+            });
+            if (clash) return 'Your password is too similar to your name or username.';
+            return '';
+        },
+        password2: function (value) {
+            return value === valueOf('password1') ? '' : 'The two passwords do not match.';
+        },
+    });
+
+    // Re-check the confirmation whenever the first password changes.
+    form.elements.password2.dataset.validateWith = 'password1';
+
+    window.passwordMeter.init({
+        password: form.elements.password1,
+        confirm: form.elements.password2,
+        list: document.getElementById('pw-criteria'),
+        related: [form.elements.username, form.elements.first_name, form.elements.last_name],
+    });
+
+    const capture = initFaceCapture({
         video: document.getElementById('reg-video'),
         canvas: document.getElementById('reg-canvas'),
         captureBtn: document.getElementById('reg-capture'),
         retakeBtn: document.getElementById('reg-retake'),
+        retryBtn: document.getElementById('reg-retry'),
         hiddenInput: document.getElementById('id_face_image_data'),
         statusEl: document.getElementById('reg-status'),
-        onReady: () => { document.getElementById('reg-submit').disabled = false; },
-        onCleared: () => { document.getElementById('reg-submit').disabled = true; },
+        photoRejected: {% if form.non_field_errors %}true{% else %}false{% endif %},
+        onReady: function () { faceError.textContent = ''; },
+        onCleared: function () {},
     });
+
+    initFormWizard({
+        form: form,
+        onEnterStep: function (step) {
+            // Ask for the camera only once the student is looking at the photo step —
+            // and not at all if their photo survived a failed submission.
+            if (step === 2 && !capture.hasPhoto()) capture.start();
+        },
+        beforeSubmit: function () {
+            if (capture.hasPhoto()) return true;
+            faceError.textContent = 'Take a photo of yourself before creating your account.';
+            submitBtn.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            return false;
+        },
+    });
+})();
 </script>
 {% endblock %}

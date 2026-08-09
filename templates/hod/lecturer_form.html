@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}New lecturer{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Staff onboarding</p>
+        <h1 class="page-title">Create lecturer account</h1>
+        <p class="page-kicker">A temporary password is generated and shown once on the next screen. The lecturer must change it the first time they sign in.</p>
+    </div>
+</div>
+
+<section class="auth-panel" aria-labelledby="lecturer-form-title">
+    <h2 id="lecturer-form-title">Lecturer details</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="row"><label for="id_username">Username</label>{{ form.username }}{{ form.username.errors }}</div>
+        <div class="form-grid">
+            <div class="row"><label for="id_first_name">First name</label>{{ form.first_name }}{{ form.first_name.errors }}</div>
+            <div class="row"><label for="id_last_name">Last name</label>{{ form.last_name }}{{ form.last_name.errors }}</div>
+        </div>
+        <div class="row"><label for="id_email">Email (optional)</label>{{ form.email }}{{ form.email.errors }}</div>
+        <div class="form-actions">
+            <button type="submit" class="primary">Create account</button>
+            <a href="{% url 'hod:lecturers' %}" class="btn btn-quiet">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

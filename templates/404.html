@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Page not found{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<section class="error-page">
+    <p class="error-code">404</p>
+    <h1 class="page-title">We couldn't find that page.</h1>
+    <p class="page-kicker">The address you opened isn't part of this system. It may have been
+        mistyped, or it may be a link that no longer exists.</p>
+    <div class="action-row">
+        {% if user.is_authenticated %}
+            <a class="btn" href="/">Back to my dashboard</a>
+            <a class="btn btn-secondary" href="{% url 'profile' %}">My profile</a>
+        {% else %}
+            <a class="btn" href="{% url 'login' %}">Sign in</a>
+            <a class="btn btn-secondary" href="{% url 'register_student' %}">Sign up</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Wrong account{% endblock %}
+{% block main_class %}narrow{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div class="page-heading">
+        <p class="eyebrow">Access</p>
+        <h1 class="page-title">That page belongs to a different account.</h1>
+        <p class="page-kicker">You are signed in as <strong>{{ user.get_full_name|default:user.username }}</strong> ({{ user.get_role_display }}).</p>
+    </div>
+</div>
+
+<section class="auth-panel">
+    <h2>Why this happened</h2>
+    <p class="muted">Your browser keeps one sign-in for every tab and window. If you signed in
+        with another account somewhere else — even in a different tab — that replaced the
+        sign-in here too. This page needs a different role than the account you are currently using.</p>
+
+    <div class="action-row">
+        <a class="btn" href="{{ role_home }}">Go to my dashboard</a>
+        <form method="post" action="{% url 'logout' %}" class="inline">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'login' %}">
+            <button type="submit" class="btn btn-secondary">Sign out &amp; use another account</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

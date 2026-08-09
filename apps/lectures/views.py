@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from apps.accounts.decorators import role_required
+from apps.accounts.models import User
 from apps.courses.models import Course
 
 from .forms import LectureForm
@@ -13,19 +14,14 @@ from .models import Lecture
 from .services import broadcast_lecture_ended, current_token_for, user_can_run
 
 
-def _privileged_required(view):
-    def wrapped(request, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return redirect("/auth/login/")
-        if not request.user.is_privileged:
-            return redirect("/auth/login/")
-        return view(request, *args, **kwargs)
-
-    return wrapped
+# Mirrors User.is_privileged. Anonymous users are handled by the gate itself,
+# so these views no longer stack @login_required on top.
+privileged_required = role_required(
+    User.Role.ADMIN, User.Role.LECTURER, User.Role.COURSE_REP
+)
 
 
-@login_required
-@_privileged_required
+@privileged_required
 def lecturer_dashboard(request):
     user = request.user
     if user.role == "admin":
@@ -43,25 +39,12 @@ def lecturer_dashboard(request):
     )
 
 
-@login_required
-@_privileged_required
+@privileged_required
 def create_lecture(request):
     if request.method == "POST":
         form = LectureForm(request.POST, user=request.user)
         if form.is_valid():
-            cd = form.cleaned_data
-            if cd.get("course_mode") == LectureForm.MODE_NEW:
-                course = Course.objects.create(
-                    code=cd["new_course_code"].strip(),
-                    title=cd["new_course_title"].strip(),
-                    department=cd["new_course_department"].strip(),
-                    lecturer=request.user,
-                    course_rep=cd.get("new_course_rep"),
-                )
-            else:
-                course = cd["course"]
             lecture: Lecture = form.save(commit=False)
-            lecture.course = course
             lecture.created_by = request.user
             lecture.save()
             messages.success(request, "Lecture created.")
@@ -71,8 +54,7 @@ def create_lecture(request):
     return render(request, "lecturer/lecture_form.html", {"form": form})
 
 
-@login_required
-@_privileged_required
+@privileged_required
 def lecture_detail(request, lecture_id: int):
     lecture = get_object_or_404(
         Lecture.objects.select_related("course", "course__lecturer"), pk=lecture_id
@@ -88,8 +70,7 @@ def lecture_detail(request, lecture_id: int):
     )
 
 
-@login_required
-@_privileged_required
+@privileged_required
 @require_POST
 def start_lecture(request, lecture_id: int):
     lecture = get_object_or_404(Lecture, pk=lecture_id)
@@ -103,8 +84,7 @@ def start_lecture(request, lecture_id: int):
     return redirect("lecturer:qr_display", lecture_id=lecture.pk)
 
 
-@login_required
-@_privileged_required
+@privileged_required
 @require_POST
 def end_lecture(request, lecture_id: int):
     from .models import QRToken
@@ -121,8 +101,7 @@ def end_lecture(request, lecture_id: int):
     return redirect("lecturer:lecture_detail", lecture_id=lecture.pk)
 
 
-@login_required
-@_privileged_required
+@privileged_required
 def qr_display(request, lecture_id: int):
     lecture = get_object_or_404(Lecture, pk=lecture_id)
     if not user_can_run(request.user, lecture):
