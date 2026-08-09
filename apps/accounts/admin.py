@@ -1,11 +1,46 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import (
+    ReadOnlyPasswordHashField,
+    ReadOnlyPasswordHashWidget,
+    UserChangeForm,
+)
+from django.utils.translation import gettext_lazy as _
 
 from .models import StudentProfile, User
 
 
+class PasswordStatusWidget(ReadOnlyPasswordHashWidget):
+    """Password readout without the stored hash's internals.
+
+    Django lists the hasher's safe summary — algorithm, iterations, salt and a
+    truncated hash — beside the reset button. None of it is actionable when
+    provisioning an account, so keep only whether a password is set.
+    """
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        # Entries carrying a value are the safe summary; the value-less ones are
+        # status messages ("No password set.") that are worth keeping.
+        summary = [entry for entry in context["summary"] if not entry.get("value")]
+        context["summary"] = summary or [{"label": _("Password set.")}]
+        return context
+
+
+class AppUserChangeForm(UserChangeForm):
+    password = ReadOnlyPasswordHashField(
+        label=_("Password"),
+        help_text=_(
+            "Raw passwords are not stored, so there is no way to see "
+            "the user’s password."
+        ),
+        widget=PasswordStatusWidget,
+    )
+
+
 @admin.register(User)
 class AppUserAdmin(UserAdmin):
+    form = AppUserChangeForm
     list_display = ("username", "first_name", "last_name", "email", "role", "is_active")
     list_filter = ("role", "is_active", "is_staff")
 

@@ -22,4 +22,18 @@ urlpatterns = [
     path("lecturers/new/", views.create_lecturer, name="create_lecturer"),
     path("import/lecturers/", views.import_lecturers, name="import_lecturers"),
     path("import/courses/", views.import_courses, name="import_courses"),
+    # `kind` is pinned per route rather than captured, so only the two known
+    # templates are reachable and the view needs no validation of its own.
+    path(
+        "import/lecturers/template.csv",
+        views.import_template,
+        {"kind": "lecturers"},
+        name="lecturer_template",
+    ),
+    path(
+        "import/courses/template.csv",
+        views.import_template,
+        {"kind": "courses"},
+        name="course_template",
+    ),
 ]

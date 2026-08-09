@@ -55,8 +55,10 @@
                     {% include "auth/_field.html" with field=form.email %}
                 </div>
 
-                {# Own grid: sharing one with username/email let those fields'
-                   heights push the password pair onto separate rows. #}
+                {% comment %}
+                Own grid: sharing one with username/email let those fields'
+                heights push the password pair onto separate rows.
+                {% endcomment %}
                 <div class="form-grid form-grid-tight">
                     {% include "auth/_field.html" with field=form.password1 %}
                     {% include "auth/_field.html" with field=form.password2 %}
@@ -112,8 +114,10 @@
     </p>
 </section>
 
-{# Without JavaScript there is no stepper and no live validation, so show everything
-   and let the server do all the checking, exactly as this page used to work. #}
+{% comment %}
+Without JavaScript there is no stepper and no live validation, so show everything
+and let the server do all the checking, exactly as this page used to work.
+{% endcomment %}
 <noscript>
     <style>
         .wizard-panel[hidden] { display: block !important; }

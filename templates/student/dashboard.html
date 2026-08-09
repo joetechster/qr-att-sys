@@ -45,9 +45,11 @@
             <div class="section-title">
                 <div>
                     <h2 id="student-courses-title">Your courses</h2>
-                    {# Only finished lectures count. A class that is still running
-                       isn't an absence yet, and one that hasn't started certainly
-                       isn't. #}
+                    {% comment %}
+                    Only finished lectures count. A class that is still running
+                    isn't an absence yet, and one that hasn't started certainly
+                    isn't.
+                    {% endcomment %}
                     <p class="muted">Attendance counts classes that have finished.</p>
                 </div>
             </div>
@@ -114,7 +116,7 @@
                         <tr>
                             <td data-label="Course"><span class="code-pill">{{ a.lecture.course.code }}</span></td>
                             <td data-label="Topic">{{ a.lecture.title }}</td>
-                            <td data-label="Marked at" class="nowrap">{{ a.marked_at }}</td>
+                            <td data-label="Marked at" class="nowrap">{{ a.marked_at|date:"j M Y, H:i" }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

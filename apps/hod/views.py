@@ -6,6 +6,7 @@ import io
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.crypto import get_random_string
 
@@ -40,9 +41,55 @@ _CSV_ALIASES = {"lecturer_username": "lecturer"}
 MIN_COURSE_UNIT = 1
 MAX_COURSE_UNIT = 12
 
+# Sample rows for the downloadable starter file. The header comes from the
+# column constants above, and the same bytes are shown on the import page, so a
+# downloaded template can never disagree with the documented format.
+_IMPORT_TEMPLATES = {
+    "lecturers": (
+        LECTURER_REQUIRED_COLUMNS + LECTURER_OPTIONAL_COLUMNS,
+        (
+            # Trailing blank is the optional `password` — left empty so the
+            # importer generates one, which is the usual case.
+            ("j.adeyemi", "Jumoke", "Adeyemi", "j.adeyemi@pcu.edu.ng", ""),
+            ("b.okoro", "Bright", "Okoro", "b.okoro@pcu.edu.ng", ""),
+        ),
+    ),
+    "courses": (
+        COURSE_REQUIRED_COLUMNS + COURSE_OPTIONAL_COLUMNS,
+        (
+            ("j.adeyemi", "CSC301", "Intro to Compilers", "3", "Computer Science"),
+            ("b.okoro", "CSC305", "Operating Systems", "2", "Computer Science"),
+        ),
+    ),
+}
+
 
 def _temp_password() -> str:
     return get_random_string(10, allowed_chars=_PASSWORD_ALPHABET)
+
+
+def _template_csv(kind: str) -> str:
+    columns, rows = _IMPORT_TEMPLATES[kind]
+    buffer = io.StringIO(newline="")
+    writer = csv.writer(buffer, lineterminator="\r\n")
+    writer.writerow(columns)
+    writer.writerows(rows)
+    return buffer.getvalue()
+
+
+@hod_required
+def import_template(request, kind: str):
+    """Serve the starter CSV for an importer as a download.
+
+    `utf-8-sig`: Excel opens a plain UTF-8 CSV in the local codepage and mangles
+    accented names on the round trip. `_read_csv` already strips the BOM.
+    """
+    response = HttpResponse(
+        _template_csv(kind).encode("utf-8-sig"),
+        content_type="text/csv; charset=utf-8",
+    )
+    response["Content-Disposition"] = f'attachment; filename="{kind}_template.csv"'
+    return response
 
 
 def _read_csv(upload, required_columns):
@@ -164,6 +211,7 @@ def import_lecturers(request):
         "form": CsvUploadForm(),
         "required_columns": LECTURER_REQUIRED_COLUMNS,
         "optional_columns": LECTURER_OPTIONAL_COLUMNS,
+        "sample_csv": _template_csv("lecturers"),
     }
     if request.method == "POST":
         form = CsvUploadForm(request.POST, request.FILES)
@@ -224,6 +272,7 @@ def import_courses(request):
         "form": CsvUploadForm(),
         "required_columns": COURSE_REQUIRED_COLUMNS,
         "optional_columns": COURSE_OPTIONAL_COLUMNS,
+        "sample_csv": _template_csv("courses"),
     }
     if request.method == "POST":
         form = CsvUploadForm(request.POST, request.FILES)

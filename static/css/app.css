@@ -617,6 +617,20 @@ th {
     text-transform: uppercase;
 }
 
+/* Padding tuned for a full-width table eats half the row when the same table
+   lands in the narrow .grid-main column. Measure the panel, not the viewport —
+   the page can be wide while the panel is not. */
+.table-panel {
+    container-type: inline-size;
+}
+
+@container (max-width: 480px) {
+    th,
+    td {
+        padding: 10px 12px;
+    }
+}
+
 tbody tr:hover {
     background: #fbfdfb;
 }
@@ -753,6 +767,26 @@ form .row {
 .form-stack .field .error {
     color: var(--danger);
     font-size: 0.82rem;
+}
+
+/* A checkbox is not a text box: the `form input` sizing below would stretch it
+   to the full column at 44px tall. Size it as a control and sit it beside its
+   own label, which for this idiom wraps the input rather than preceding it. */
+.form-stack .field-inline > label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+    font-weight: 600;
+}
+
+.form-stack .field-inline input[type="checkbox"] {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    min-height: 0;
+    padding: 0;
+    accent-color: var(--accent);
 }
 
 .code-block {

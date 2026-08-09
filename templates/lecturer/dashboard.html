@@ -30,7 +30,11 @@
     </div>
 </section>
 
-<div class="grid grid-main">
+{% comment %}
+Six columns in one table and five in the other: neither survives the narrow
+half of .grid-main, so both panels take the full shell width.
+{% endcomment %}
+<div class="stack">
     <section class="table-panel" aria-labelledby="courses-title">
         <div class="panel-header">
             <div class="section-title">
@@ -81,8 +85,10 @@
             <div class="table-scroll">
                 <table class="table-stack">
                     <thead>
-                    {# "Topic", not "Title" — the courses table above has its own
-                       Title column and two on one page read as the same thing. #}
+                    {% comment %}
+                    "Topic", not "Title" — the courses table above has its own
+                    Title column and two on one page read as the same thing.
+                    {% endcomment %}
                     <tr><th>Topic</th><th>Course</th><th>Start</th><th>Status</th><th></th></tr>
                     </thead>
                     <tbody>
@@ -90,7 +96,7 @@
                         <tr>
                             <td data-label="Topic">{{ l.title }}</td>
                             <td data-label="Course"><span class="code-pill">{{ l.course.code }}</span></td>
-                            <td class="nowrap" data-label="Start">{{ l.scheduled_start }}</td>
+                            <td class="nowrap" data-label="Start">{{ l.scheduled_start|date:"j M Y, H:i" }}</td>
                             <td data-label="Status"><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
                             <td class="table-actions"><a href="{% url 'lecturer:lecture_detail' l.id %}">Open</a></td>
                         </tr>

@@ -220,6 +220,60 @@ class CourseImportTests(TestCase):
         self.assertFalse(Course.objects.exists())
 
 
+class ImportTemplateTests(TestCase):
+    """The starter file has to be importable as-is, header and all."""
+
+    def setUp(self):
+        self.hod = User.objects.create_user("hod1", password="x", role=User.Role.HOD)
+        self.client.force_login(self.hod)
+
+    def download(self, name):
+        response = self.client.get(reverse(name))
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    def test_templates_download_as_attachments(self):
+        for name, filename in (
+            ("hod:lecturer_template", "lecturers_template.csv"),
+            ("hod:course_template", "courses_template.csv"),
+        ):
+            with self.subTest(name=name):
+                response = self.download(name)
+                self.assertIn("text/csv", response["Content-Type"])
+                self.assertIn(filename, response["Content-Disposition"])
+
+    def test_the_lecturer_template_imports_without_edits(self):
+        text = self.download("hod:lecturer_template").content.decode("utf-8-sig")
+        response = self.client.post(
+            reverse("hod:import_lecturers"), {"file": csv_upload(text)}
+        )
+        result = response.context["result"]
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(len(result["created"]), 2)
+        # Blank password column means a generated one, not an empty password.
+        self.assertTrue(all(row["password"] for row in result["created"]))
+
+    def test_the_course_template_imports_once_its_lecturers_exist(self):
+        for username in ("j.adeyemi", "b.okoro"):
+            User.objects.create_user(username, password="x", role=User.Role.LECTURER)
+        text = self.download("hod:course_template").content.decode("utf-8-sig")
+        response = self.client.post(
+            reverse("hod:import_courses"), {"file": csv_upload(text)}
+        )
+        result = response.context["result"]
+        self.assertEqual(result["errors"], [])
+        self.assertEqual(Course.objects.count(), 2)
+
+    def test_a_lecturer_cannot_download_the_templates(self):
+        lecturer = User.objects.create_user(
+            "lec1", password="x", role=User.Role.LECTURER
+        )
+        self.client.force_login(lecturer)
+        for name in ("hod:lecturer_template", "hod:course_template"):
+            with self.subTest(name=name):
+                self.assertEqual(self.client.get(reverse(name)).status_code, 403)
+
+
 class CourseEditTests(TestCase):
     """Reassigning a course was previously only possible in Django admin."""
 

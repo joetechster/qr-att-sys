@@ -16,8 +16,10 @@
                 <h2 id="courses-list-title">Available courses</h2>
                 <p class="muted">{{ courses|length }} course{{ courses|length|pluralize }} listed.</p>
             </div>
-            {# course_create is HOD-only; this used to be gated on 'lecturer',
-               so the one role allowed to use it never saw the button. #}
+            {% comment %}
+            course_create is HOD-only; this used to be gated on 'lecturer',
+            so the one role allowed to use it never saw the button.
+            {% endcomment %}
             {% if user.role == 'hod' %}
                 <a href="{% url 'course_create' %}" class="btn btn-secondary">+ New course</a>
             {% endif %}
