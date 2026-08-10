@@ -137,6 +137,9 @@ def dashboard(request):
             "open_complaints": Complaint.objects.filter(
                 status=Complaint.Status.SUBMITTED
             ).count(),
+            "escalated_count": Complaint.objects.filter(
+                escalated_at__isnull=False
+            ).count(),
             "recent_courses": Course.objects.select_related("lecturer").order_by("-created_at")[:8],
         },
     )

@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     "apps.attendance",
     "apps.complaints",
     "apps.hod",
+    "apps.vc",
 ]
 
 MIDDLEWARE = [
@@ -84,6 +85,8 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Lagos"
 USE_I18N = True
 USE_TZ = True
+# Day-first dates everywhere, including the admin. See attendance_sys/formats/.
+FORMAT_MODULE_PATH = ["attendance_sys.formats"]
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]

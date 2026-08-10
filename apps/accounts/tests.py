@@ -87,7 +87,12 @@ class ProfileViewTests(TestCase):
         self.assertIn("/auth/login/", response["Location"])
 
     def test_every_role_can_open_their_profile(self):
-        for role in (User.Role.STUDENT, User.Role.LECTURER, User.Role.HOD):
+        for role in (
+            User.Role.STUDENT,
+            User.Role.LECTURER,
+            User.Role.HOD,
+            User.Role.VICE_CHANCELLOR,
+        ):
             with self.subTest(role=role):
                 user = User.objects.create_user(f"u-{role}", password="x", role=role)
                 self.client.force_login(user)

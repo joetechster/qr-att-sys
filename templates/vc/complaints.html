@@ -1,25 +1,24 @@
 {% extends "base.html" %}
-{% block title %}Department complaints{% endblock %}
+{% block title %}Escalated complaints{% endblock %}
 {% block content %}
 <section class="hero-panel">
     <div class="page-copy">
-        <p class="eyebrow">Head of Department</p>
-        <h1 class="page-title">Department complaints</h1>
-        <p class="page-kicker">Review and respond to complaints filed by students about lecturers, courses, and general matters.</p>
+        <p class="eyebrow">Vice Chancellor</p>
+        <h1 class="page-title">Escalated complaints</h1>
+        <p class="page-kicker">Every complaint a Head of Department has raised to your office, newest escalation first.</p>
         <div class="stat-grid">
             <div class="stat">
                 <span class="stat-label">Total</span>
                 <span class="stat-value">{{ complaints|length }}</span>
-                <span class="stat-caption">{% if status_filter %}filtered{% else %}all complaints{% endif %}</span>
+                <span class="stat-caption">{% if status_filter %}filtered{% else %}all escalated{% endif %}</span>
             </div>
         </div>
     </div>
     <div class="action-row">
-        <a href="{% url 'hod:complaints' %}" class="btn {% if not status_filter and not escalated_only %}{% else %}btn-secondary{% endif %}">All</a>
+        <a href="{% url 'vc:complaints' %}" class="btn {% if not status_filter %}{% else %}btn-secondary{% endif %}">All</a>
         {% for value, label in status_choices %}
             <a href="?status={{ value }}" class="btn {% if status_filter == value %}{% else %}btn-secondary{% endif %}">{{ label }}</a>
         {% endfor %}
-        <a href="?escalated=1" class="btn {% if escalated_only %}{% else %}btn-secondary{% endif %}">Escalated</a>
     </div>
 </section>
 
@@ -28,7 +27,7 @@
         <div class="section-title">
             <div>
                 <h2>Complaints</h2>
-                <p class="muted">Newest first. Click a row to review and respond.</p>
+                <p class="muted">Open a row to read the complaint, the HOD's response, and why it was escalated.</p>
             </div>
         </div>
     </div>
@@ -36,12 +35,12 @@
         <div class="table-scroll">
             <table class="table-stack">
                 <thead>
-                <tr><th>Subject</th><th>Student</th><th>About</th><th>Filed</th><th>Status</th><th></th></tr>
+                <tr><th>Subject</th><th>Student</th><th>About</th><th>Escalated by</th><th>Escalated</th><th>Status</th><th></th></tr>
                 </thead>
                 <tbody>
                 {% for c in complaints %}
                     <tr>
-                        <td data-label="Subject">{{ c.subject }}{% if c.is_escalated %} <span class="tag">Escalated</span>{% endif %}</td>
+                        <td data-label="Subject">{{ c.subject }}</td>
                         <td data-label="Student">
                             {% if c.is_anonymous %}
                                 <span class="tag">Anonymous</span>
@@ -54,9 +53,10 @@
                             {% if c.lecturer %}<div class="muted">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</div>{% endif %}
                             {% if not c.course and not c.lecturer %}<span class="muted">General</span>{% endif %}
                         </td>
-                        <td class="nowrap" data-label="Filed">{{ c.created_at }}</td>
+                        <td data-label="Escalated by">{{ c.escalated_by.get_full_name|default:c.escalated_by.username|default:"—" }}</td>
+                        <td class="nowrap" data-label="Escalated">{{ c.escalated_at }}</td>
                         <td data-label="Status"><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
-                        <td class="table-actions"><a href="{% url 'hod:complaint_detail' c.id %}">Review</a></td>
+                        <td class="table-actions"><a href="{% url 'vc:complaint_detail' c.id %}">Open</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -65,7 +65,7 @@
     {% else %}
         <div class="empty-state">
             <strong>No complaints to show</strong>
-            <span>{% if status_filter %}Nothing matches this filter.{% else %}When students file complaints, they appear here.{% endif %}</span>
+            <span>{% if status_filter %}Nothing escalated matches this filter.{% else %}Nothing has been escalated to your office yet.{% endif %}</span>
         </div>
     {% endif %}
 </section>

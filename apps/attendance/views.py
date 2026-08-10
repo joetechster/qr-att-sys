@@ -18,7 +18,7 @@ from apps.accounts.face_utils import FaceError, compare_to_encoding
 from apps.accounts.models import StudentProfile, User
 from apps.courses.models import Enrollment
 from apps.lectures.models import Lecture, QRToken
-from apps.lectures.services import rotate_token
+from apps.lectures.services import expire_if_due, rotate_token
 
 from .models import AttendanceRecord
 
@@ -79,6 +79,13 @@ def verify(request):
                 return JsonResponse(
                     {"ok": False, "error": "This QR code has expired. Scan the new one."},
                     status=409,
+                )
+            # A lecture nobody has revisited since its end time is still
+            # `active` in the database; close it here so a late scan cannot
+            # slip through on a token that was never burned.
+            if expire_if_due(token.lecture):
+                return JsonResponse(
+                    {"ok": False, "error": "This lecture has ended."}, status=409
                 )
             if token.lecture.status != Lecture.Status.ACTIVE:
                 return JsonResponse(

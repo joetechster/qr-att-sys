@@ -64,7 +64,15 @@ function initFaceCapture(opts) {
         setStatus('Starting the camera…');
         try {
             stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user' },
+                // Ask for a high-resolution frame: the encoder needs a face big
+                // enough in pixels to align well, and a scan is captured at the
+                // camera's native size, so a small reference is a mismatch.
+                // These are `ideal`, so a weaker camera still works.
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                },
                 audio: false,
             });
             video.srcObject = stream;
@@ -87,6 +95,11 @@ function initFaceCapture(opts) {
 
     captureBtn.addEventListener('click', function () {
         const ctx = canvas.getContext('2d');
+        // Match the canvas to the camera's own frame size before drawing. The
+        // element is laid out by CSS, so leaving the backing store at its
+        // default 300x150 would store a thumbnail as the reference photo.
+        canvas.width = video.videoWidth || canvas.width;
+        canvas.height = video.videoHeight || canvas.height;
         // The preview is mirrored in CSS for a natural selfie feel; the canvas is not,
         // so the stored face matches how a camera actually sees the student.
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -112,6 +125,10 @@ function initFaceCapture(opts) {
         if (!hasPhoto()) return false;
         const image = new Image();
         image.onload = function () {
+            // Same sizing rule as capture: redraw at the photo's own resolution
+            // so a form redisplay doesn't quietly shrink what gets resubmitted.
+            canvas.width = image.naturalWidth || canvas.width;
+            canvas.height = image.naturalHeight || canvas.height;
             canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
         };
         image.src = hiddenInput.value;

@@ -16,6 +16,11 @@ urlpatterns = [
         complaint_views.hod_complaint_detail,
         name="complaint_detail",
     ),
+    path(
+        "complaints/<int:complaint_id>/escalate/",
+        complaint_views.hod_escalate_complaint,
+        name="escalate_complaint",
+    ),
     path("courses/", views.course_list, name="courses"),
     path("courses/<int:course_id>/edit/", views.course_edit, name="course_edit"),
     path("lecturers/", views.lecturer_list, name="lecturers"),

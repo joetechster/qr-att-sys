@@ -63,6 +63,7 @@ The `--no-deps` flag is critical: `face_recognition`'s metadata asks pip for the
 
 1. Visit `http://localhost:8000/admin/` and log in as the superuser you created.
 2. Add one user with role = `hod`, and give them a password. Everything below is done from the app, not the admin.
+   Add a user with role = `vice_chancellor` the same way if you want the VC console at `/vc/`.
 3. Sign in as the HOD at `/auth/login/` → `/hod/`.
    - **New lecturer** creates one account and shows its temporary password once — write it down.
    - **Import lecturers (CSV)** does the same in bulk; the result table lists every generated password.
@@ -73,6 +74,25 @@ The `--no-deps` flag is critical: `face_recognition`'s metadata asks pip for the
 7. Sign in as the lecturer → "Create lecture" → pick one of your assigned courses, fill in start/end times → click "Start lecture". A live QR will appear.
 8. On a second device (or another browser tab on the same machine), sign in as the student → "Scan" → point camera at the lecturer's QR → take a selfie. After verification you land back on the student dashboard with "Attendance marked", and the lecturer's QR rotates.
 9. Try scanning the **old** QR (e.g. from a screenshot you took before rotation). It will be rejected with "code expired".
+10. Students can file complaints at `/complaints/submit/`. The HOD reviews them at `/hod/complaints/` and can **Escalate to Vice Chancellor**; escalated ones then appear read-only at `/vc/complaints/`.
+
+## Complaints and escalation
+
+A complaint belongs to the student who filed it and is answered once by the HOD (status plus a response the student sees on `/complaints/mine/`). If it needs attention above the department, the HOD escalates it from the complaint's detail page with an optional note. The Vice Chancellor's console shows only escalated complaints and never offers a form — an unescalated complaint is a 404 there even by direct id.
+
+## Lectures end on their own
+
+A lecture is over once its `scheduled_end` passes, whether or not the lecturer clicked **End lecture**: opening the dashboard, the lecture page, the student dashboard, or attempting a scan will close it out and burn any outstanding QR. While a QR display is open, the server also ends the lecture on time and pushes it down the WebSocket, so the screen clears itself without a refresh. Nothing external needs scheduling.
+
+## Face recognition
+
+The reference photo is captured at the camera's native resolution and encoded with the 68-point landmark model, which is what lets a student be recognised without reproducing their registration pose. Both enrolment and scanning must use the same model, so **after pulling a change to `face_utils.py`, re-encode the existing photos**:
+
+```powershell
+python manage.py reencode_faces          # add --dry-run to preview
+```
+
+`FACE_MATCH_THRESHOLD` in settings (default `0.6`) is the maximum distance that still counts as a match — lower is stricter.
 
 ### CSV formats
 

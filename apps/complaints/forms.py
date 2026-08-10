@@ -50,3 +50,20 @@ class ComplaintReviewForm(forms.ModelForm):
         widgets = {
             "hod_response": forms.Textarea(attrs={"rows": 5}),
         }
+
+
+class EscalateComplaintForm(forms.ModelForm):
+    """The HOD's note to the Vice Chancellor when pushing a complaint up."""
+
+    class Meta:
+        model = Complaint
+        fields = ("escalation_note",)
+        widgets = {
+            "escalation_note": forms.Textarea(
+                attrs={"rows": 3, "placeholder": "Why does this need the VC's attention?"}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["escalation_note"].required = False

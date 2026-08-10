@@ -116,7 +116,7 @@
                         <tr>
                             <td data-label="Course"><span class="code-pill">{{ a.lecture.course.code }}</span></td>
                             <td data-label="Topic">{{ a.lecture.title }}</td>
-                            <td data-label="Marked at" class="nowrap">{{ a.marked_at|date:"j M Y, H:i" }}</td>
+                            <td data-label="Marked at" class="nowrap">{{ a.marked_at|date:"d/m/Y H:i" }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>

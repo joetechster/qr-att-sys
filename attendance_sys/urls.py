@@ -15,6 +15,7 @@ urlpatterns = [
     path("student/", include(("apps.accounts.student_urls", "student"), namespace="student")),
     path("complaints/", include("apps.complaints.urls")),
     path("hod/", include(("apps.hod.urls", "hod"), namespace="hod")),
+    path("vc/", include(("apps.vc.urls", "vc"), namespace="vc")),
     path("", RedirectView.as_view(url="/auth/login/", permanent=False)),
 ]
 

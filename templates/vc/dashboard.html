@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}VC dashboard{% endblock %}
+{% block content %}
+<section class="hero-panel">
+    <div class="page-copy">
+        <p class="eyebrow">Vice Chancellor</p>
+        <h1 class="page-title">Complaints raised to your office.</h1>
+        <p class="page-kicker">Heads of Department escalate complaints here when they need attention above the department. This console is read-only.</p>
+        <div class="stat-grid">
+            <div class="stat">
+                <span class="stat-label">Escalated</span>
+                <span class="stat-value">{{ escalated_count }}</span>
+                <span class="stat-caption">in total</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Open</span>
+                <span class="stat-value">{{ open_count }}</span>
+                <span class="stat-caption">not yet resolved</span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Resolved</span>
+                <span class="stat-value">{{ resolved_count }}</span>
+                <span class="stat-caption">closed by the HOD</span>
+            </div>
+        </div>
+    </div>
+    <div class="action-row">
+        <a href="{% url 'vc:complaints' %}" class="btn">View all escalated complaints</a>
+    </div>
+</section>
+
+<section class="table-panel" aria-labelledby="recent-escalated-title">
+    <div class="panel-header">
+        <div class="section-title">
+            <div>
+                <h2 id="recent-escalated-title">Recently escalated</h2>
+                <p class="muted">Most recently escalated first.</p>
+            </div>
+        </div>
+    </div>
+    {% if recent %}
+        <div class="table-scroll">
+            <table class="table-stack">
+                <thead>
+                <tr><th>Subject</th><th>About</th><th>Escalated by</th><th>Escalated</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                {% for c in recent %}
+                    <tr>
+                        <td data-label="Subject">{{ c.subject }}</td>
+                        <td data-label="About">
+                            {% if c.course %}<span class="code-pill">{{ c.course.code }}</span>{% endif %}
+                            {% if c.lecturer %}<div class="muted">{{ c.lecturer.get_full_name|default:c.lecturer.username }}</div>{% endif %}
+                            {% if not c.course and not c.lecturer %}<span class="muted">General</span>{% endif %}
+                        </td>
+                        <td data-label="Escalated by">{{ c.escalated_by.get_full_name|default:c.escalated_by.username|default:"—" }}</td>
+                        <td class="nowrap" data-label="Escalated">{{ c.escalated_at }}</td>
+                        <td data-label="Status"><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
+                        <td class="table-actions"><a href="{% url 'vc:complaint_detail' c.id %}">Open</a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <strong>Nothing escalated yet</strong>
+            <span>When a Head of Department escalates a student complaint, it appears here.</span>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

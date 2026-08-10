@@ -39,6 +39,10 @@
                     <a class="nav-link" href="{% url 'hod:lecturers' %}">Lecturers</a>
                     <a class="nav-link" href="{% url 'hod:complaints' %}">Complaints</a>
                 {% endif %}
+                {% if user.role == 'vice_chancellor' %}
+                    <a class="nav-link" href="{% url 'vc:dashboard' %}">VC Dashboard</a>
+                    <a class="nav-link" href="{% url 'vc:complaints' %}">Escalated complaints</a>
+                {% endif %}
                 <a class="nav-link" href="{% url 'course_list' %}">Courses</a>
                 <form method="post" action="{% url 'logout' %}" class="inline">
                     {% csrf_token %}

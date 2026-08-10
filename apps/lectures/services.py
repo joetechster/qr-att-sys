@@ -75,3 +75,51 @@ def rotate_token(lecture: Lecture, used_token: QRToken, used_by) -> QRToken:
 def broadcast_lecture_ended(lecture: Lecture) -> None:
     """Tell open QR displays that the lecture is over."""
     _broadcast(qr_group_name(lecture.id), {"type": "lecture.ended"})
+
+
+def end_lecture_now(lecture: Lecture) -> None:
+    """End a lecture and burn its outstanding QR.
+
+    The one place a lecture stops: both the lecturer's End button and the
+    automatic expiry below go through here, so a scan can never survive an end
+    by taking a different code path.
+    """
+    lecture.status = Lecture.Status.ENDED
+    lecture.save(update_fields=("status",))
+    QRToken.objects.filter(lecture=lecture, is_used=False).update(
+        is_used=True, used_at=timezone.now()
+    )
+    broadcast_lecture_ended(lecture)
+
+
+def is_past_end(lecture: Lecture) -> bool:
+    """Whether the lecture's scheduled window has closed."""
+    return timezone.now() >= lecture.scheduled_end
+
+
+def expire_if_due(lecture: Lecture) -> bool:
+    """End `lecture` if its scheduled_end has passed. True if it just ended.
+
+    Applies to `scheduled` lectures too — one that was never started is over
+    once its window closes, and leaving it startable hours later is what let
+    stale lectures keep accepting scans.
+    """
+    if lecture.status == Lecture.Status.ENDED or not is_past_end(lecture):
+        return False
+    end_lecture_now(lecture)
+    return True
+
+
+def expire_due_lectures(queryset=None) -> int:
+    """Bulk form of `expire_if_due` for list views. Returns how many ended."""
+    qs = Lecture.objects.all() if queryset is None else queryset
+    due = qs.exclude(status=Lecture.Status.ENDED).filter(
+        scheduled_end__lte=timezone.now()
+    )
+    ended = 0
+    # Iterated rather than .update()ed: each lecture needs its tokens burned and
+    # its own display group notified.
+    for lecture in list(due):
+        end_lecture_now(lecture)
+        ended += 1
+    return ended

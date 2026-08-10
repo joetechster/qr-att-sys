@@ -16,4 +16,6 @@ def role_home(user) -> str:
         return "/lecturer/"
     if user.role == User.Role.HOD:
         return "/hod/"
+    if user.role == User.Role.VICE_CHANCELLOR:
+        return "/vc/"
     return "/admin/"

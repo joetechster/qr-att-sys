@@ -155,8 +155,16 @@ def register_student(request):
 def student_dashboard(request):
     from apps.courses.models import Enrollment
     from apps.lectures.models import Lecture
+    from apps.lectures.services import expire_due_lectures
 
     profile = getattr(request.user, "student_profile", None)
+
+    # Close out anything whose window has passed before the counts below are
+    # taken: "held" is derived from ENDED lectures, so a finished lecture nobody
+    # has revisited would otherwise be missing from the student's denominator.
+    expire_due_lectures(
+        Lecture.objects.filter(course__enrollments__student=request.user).distinct()
+    )
 
     # "Held" can only be derived: there are no absence rows, a record's mere
     # existence means present. Only ENDED lectures count — an ACTIVE one is

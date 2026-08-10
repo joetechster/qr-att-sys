@@ -81,8 +81,11 @@
             <div class="capture-layout">
                 <div class="scan-stage">
                     <div class="camera-frame">
-                        <video id="reg-video" autoplay playsinline muted width="320" height="240"></video>
-                        <canvas id="reg-canvas" width="320" height="240" style="display:none;"></canvas>
+                        {# No width/height attributes: .camera-frame sizes both in CSS, and the
+                           canvas is resized to the camera's native resolution at capture time so
+                           the reference photo isn't stored at preview size. #}
+                        <video id="reg-video" autoplay playsinline muted></video>
+                        <canvas id="reg-canvas" style="display:none;"></canvas>
                     </div>
                     <p id="reg-status" class="status-box" role="status">Turn on your camera to take a reference photo.</p>
                     <div class="action-row">

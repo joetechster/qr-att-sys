@@ -11,7 +11,7 @@
         </p>
     </div>
     <div class="action-row">
-        <a href="{% url 'hod:complaints' %}" class="btn btn-secondary">&larr; Back to all complaints</a>
+        <a href="{% url 'vc:complaints' %}" class="btn btn-secondary">&larr; Back to escalated complaints</a>
     </div>
 </section>
 
@@ -20,7 +20,7 @@
         <div class="panel-header">
             <div class="section-title">
                 <div>
-                    <h2>Details</h2>
+                    <h2>Complaint</h2>
                 </div>
             </div>
         </div>
@@ -41,12 +41,6 @@
                 <label>Description</label>
                 <div>{{ complaint.body|linebreaksbr }}</div>
             </div>
-            {% if complaint.responded_by %}
-                <div class="field">
-                    <label>Last updated by</label>
-                    <div>{{ complaint.responded_by.get_full_name|default:complaint.responded_by.username }} on {{ complaint.updated_at }}</div>
-                </div>
-            {% endif %}
         </div>
     </section>
 
@@ -54,61 +48,44 @@
         <div class="panel-header">
             <div class="section-title">
                 <div>
-                    <h2>Review</h2>
-                    <p class="muted">Update status and write a response visible to the student.</p>
+                    <h2>Department handling</h2>
+                    <p class="muted">What the Head of Department did before escalating.</p>
                 </div>
             </div>
         </div>
-        <form method="post" class="form-stack" style="padding: 20px;" novalidate>
-            {% csrf_token %}
+        <div class="form-stack" style="padding: 20px;">
             <div class="field">
-                <label for="{{ form.status.id_for_label }}">Status</label>
-                {{ form.status }}
-            </div>
-            <div class="field">
-                <label for="{{ form.hod_response.id_for_label }}">Response</label>
-                {{ form.hod_response }}
-            </div>
-            <div class="action-row">
-                <button class="btn" type="submit">Save</button>
-            </div>
-        </form>
-    </section>
-</div>
-
-<section class="table-panel">
-    <div class="panel-header">
-        <div class="section-title">
-            <div>
-                <h2>Vice Chancellor</h2>
-                <p class="muted">
-                    {% if complaint.is_escalated %}
-                        This complaint is visible to the Vice Chancellor.
+                <label>HOD response</label>
+                <div>
+                    {% if complaint.hod_response %}
+                        {{ complaint.hod_response|linebreaksbr }}
                     {% else %}
-                        Escalate if this needs attention above the department. The VC sees it read-only.
+                        <span class="muted">No response written.</span>
                     {% endif %}
-                </p>
+                </div>
             </div>
-        </div>
-    </div>
-    <form method="post" action="{% url 'hod:escalate_complaint' complaint.id %}" class="form-stack" style="padding: 20px;" novalidate>
-        {% csrf_token %}
-        {% if complaint.is_escalated %}
+            {% if complaint.responded_by %}
+                <div class="field">
+                    <label>Last updated by</label>
+                    <div>{{ complaint.responded_by.get_full_name|default:complaint.responded_by.username }} on {{ complaint.updated_at }}</div>
+                </div>
+            {% endif %}
             <div class="field">
                 <label>Escalated</label>
                 <div>{{ complaint.escalated_at }} by
                     {{ complaint.escalated_by.get_full_name|default:complaint.escalated_by.username|default:"—" }}</div>
             </div>
-        {% endif %}
-        <div class="field">
-            <label for="{{ escalate_form.escalation_note.id_for_label }}">Note to the Vice Chancellor (optional)</label>
-            {{ escalate_form.escalation_note }}
+            <div class="field">
+                <label>Escalation note</label>
+                <div>
+                    {% if complaint.escalation_note %}
+                        {{ complaint.escalation_note|linebreaksbr }}
+                    {% else %}
+                        <span class="muted">No note given.</span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <div class="action-row">
-            <button class="btn {% if complaint.is_escalated %}btn-secondary{% endif %}" type="submit">
-                {% if complaint.is_escalated %}Update note{% else %}Escalate to Vice Chancellor{% endif %}
-            </button>
-        </div>
-    </form>
-</section>
+    </section>
+</div>
 {% endblock %}

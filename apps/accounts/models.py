@@ -9,6 +9,9 @@ class User(AbstractUser):
         COURSE_REP = "course_rep", "Course Rep"
         STUDENT = "student", "Student"
         HOD = "hod", "Head of Department"
+        # 15 characters — the role column is max_length=16, so this fits without
+        # widening it.
+        VICE_CHANCELLOR = "vice_chancellor", "Vice Chancellor"
 
     role = models.CharField(max_length=16, choices=Role.choices, default=Role.STUDENT)
     # Set when an account is provisioned with a temporary password (staff created

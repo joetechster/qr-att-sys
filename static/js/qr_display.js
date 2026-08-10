@@ -15,6 +15,11 @@ function initQrDisplay(opts) {
         new window.QRious({ element: canvas, value: scanUrl, size: 320, padding: 16 });
     }
 
+    function clearCode() {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
     function onMessage(ev) {
         let data;
         try { data = JSON.parse(ev.data); } catch { return; }
@@ -24,8 +29,16 @@ function initQrDisplay(opts) {
                 render(data.token);
             }
             statusEl.textContent = 'Live - code rotates after each successful scan.';
+        } else if (data.status === 'ended') {
+            // Pushed when the lecturer ends the lecture or its scheduled end
+            // time is reached. Wipe the code so a stale QR can't be scanned off
+            // a screen nobody has closed.
+            lastToken = null;
+            clearCode();
+            statusEl.textContent = 'This lecture has ended.';
         } else {
             lastToken = null;
+            clearCode();
             statusEl.textContent = 'Lecture is not active.';
         }
     }

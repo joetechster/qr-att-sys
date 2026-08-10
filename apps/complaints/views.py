@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
 
-from .forms import ComplaintForm, ComplaintReviewForm
+from .forms import ComplaintForm, ComplaintReviewForm, EscalateComplaintForm
 from .models import Complaint
 
 
@@ -40,15 +42,19 @@ def my_complaints(request):
 @_hod_required
 def hod_complaint_list(request):
     status_filter = request.GET.get("status", "").strip()
+    escalated_only = request.GET.get("escalated") == "1"
     qs = Complaint.objects.select_related("student", "course", "lecturer")
     if status_filter in dict(Complaint.Status.choices):
         qs = qs.filter(status=status_filter)
+    if escalated_only:
+        qs = qs.filter(escalated_at__isnull=False)
     return render(
         request,
         "hod/complaints.html",
         {
             "complaints": qs,
             "status_filter": status_filter,
+            "escalated_only": escalated_only,
             "status_choices": Complaint.Status.choices,
         },
     )
@@ -57,7 +63,9 @@ def hod_complaint_list(request):
 @_hod_required
 def hod_complaint_detail(request, complaint_id: int):
     complaint = get_object_or_404(
-        Complaint.objects.select_related("student", "course", "lecturer"),
+        Complaint.objects.select_related(
+            "student", "course", "lecturer", "escalated_by"
+        ),
         pk=complaint_id,
     )
     if request.method == "POST":
@@ -73,5 +81,37 @@ def hod_complaint_detail(request, complaint_id: int):
     return render(
         request,
         "hod/complaint_detail.html",
-        {"complaint": complaint, "form": form},
+        {
+            "complaint": complaint,
+            "form": form,
+            "escalate_form": EscalateComplaintForm(instance=complaint),
+        },
     )
+
+
+@_hod_required
+@require_POST
+def hod_escalate_complaint(request, complaint_id: int):
+    """Push a complaint up to the Vice Chancellor.
+
+    Idempotent: re-posting on an already-escalated complaint only rewrites the
+    note, so the original escalation's timestamp and author survive.
+    """
+    complaint = get_object_or_404(Complaint, pk=complaint_id)
+    already = complaint.is_escalated
+    form = EscalateComplaintForm(request.POST, instance=complaint)
+    if form.is_valid():
+        updated: Complaint = form.save(commit=False)
+        if not already:
+            updated.escalated_at = timezone.now()
+            updated.escalated_by = request.user
+        updated.save()
+        messages.success(
+            request,
+            "Escalation note updated."
+            if already
+            else "Complaint escalated to the Vice Chancellor.",
+        )
+    else:
+        messages.error(request, "Could not escalate that complaint.")
+    return redirect("hod:complaint_detail", complaint_id=complaint.id)

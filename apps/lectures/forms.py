@@ -14,8 +14,16 @@ class LectureForm(forms.ModelForm):
         labels = {"title": "Topic"}
         widgets = {
             "title": forms.TextInput(attrs={"placeholder": "e.g. Binary search trees"}),
-            "scheduled_start": forms.DateTimeInput(attrs={"type": "datetime-local"}),
-            "scheduled_end": forms.DateTimeInput(attrs={"type": "datetime-local"}),
+            # The format is pinned rather than left to DATETIME_INPUT_FORMATS[0]:
+            # <input type="datetime-local"> only accepts ISO, and a browser
+            # silently blanks anything else when the form redisplays after a
+            # validation error.
+            "scheduled_start": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
+            "scheduled_end": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
         }
 
     def __init__(self, *args, user=None, **kwargs):

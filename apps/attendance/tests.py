@@ -74,6 +74,19 @@ class ScanRedirectTests(TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertNotIn("redirect_url", response.json())
 
+    @mock.patch("apps.attendance.views.compare_to_encoding", return_value=0.2)
+    def test_a_scan_after_the_scheduled_end_is_rejected(self, _compare):
+        """The lecture is still `active` in the DB — nobody has revisited it."""
+        Lecture.objects.filter(pk=self.lecture.pk).update(
+            scheduled_end=timezone.now() - timezone.timedelta(minutes=1)
+        )
+        response = self.post_scan()
+        self.assertEqual(response.status_code, 409)
+        self.assertIn("ended", response.json()["error"])
+        self.lecture.refresh_from_db()
+        self.assertEqual(self.lecture.status, Lecture.Status.ENDED)
+        self.assertFalse(self.student.attendance_records.exists())
+
 
 class ScanRoleGateTests(TestCase):
     """The scanner fetches /scan/verify/, so a refusal must stay JSON.

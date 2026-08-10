@@ -69,7 +69,7 @@
                     {% for l in lectures %}
                         <tr>
                             <td data-label="Topic">{% if user.is_privileged %}<a href="{% url 'lecturer:lecture_detail' l.id %}">{{ l.title }}</a>{% else %}{{ l.title }}{% endif %}</td>
-                            <td class="nowrap" data-label="Start">{{ l.scheduled_start|date:"j M Y, H:i" }}</td>
+                            <td class="nowrap" data-label="Start">{{ l.scheduled_start|date:"d/m/Y H:i" }}</td>
                             <td data-label="Status"><span class="status-pill status-{{ l.status }}">{{ l.get_status_display }}</span></td>
                         </tr>
                     {% endfor %}
