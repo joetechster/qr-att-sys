@@ -1,0 +1,143 @@
+@startuml PCU-attendance-use-cases
+' Use case model for the PCU QR + face attendance system.
+' Render at https://www.plantuml.com/plantuml or with `plantuml use-case-diagram.puml`.
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam actorStyle awesome
+skinparam ArrowColor #5B6B66
+skinparam UsecaseBorderColor #4B5B67
+skinparam UsecaseBackgroundColor #FBFCFB
+
+actor "User" as User
+actor "Student" as Student
+actor "Lecturer" as Lecturer
+actor "Course Rep" as Rep
+actor "Head of Department" as HOD
+actor "Vice Chancellor" as VC
+actor "Administrator" as Admin
+
+' Supporting (secondary) actors — outside the system boundary.
+actor "Device camera" as Cam <<device>>
+actor "Face recognition" as Face <<system>>
+
+Student   --|> User
+Lecturer  --|> User
+Rep       --|> Lecturer
+HOD       --|> User
+VC        --|> User
+Admin     --|> User
+
+rectangle "PCU QR + Face Attendance System" {
+
+  package "A · Access & identity" {
+    usecase "A1 Sign in"                      as A1
+    usecase "A2 Manage profile and password"  as A2
+    usecase "A3 Sign out"                     as A3
+    usecase "Forced password reset\non first sign-in" as A2x
+  }
+
+  package "B · Attendance" {
+    usecase "B1 Register with live face capture" as B1
+    usecase "B2 Enroll in a course"              as B2
+    usecase "B3 Mark attendance by QR scan"      as B3
+    usecase "B4 View my attendance record"       as B4
+    usecase "B5 File a complaint"                as B5
+    usecase "B6 Track complaint and HOD reply"   as B6
+    usecase "Capture and encode face"       as Bi1
+    usecase "Validate one-shot QR token"    as Bi2
+    usecase "Match face to reference photo" as Bi3
+    usecase "Confirm course enrollment"     as Bi4
+  }
+
+  package "C · Lecture delivery" {
+    usecase "C1 Schedule a lecture"           as C1
+    usecase "C2 Start lecture"                as C2
+    usecase "C3 Present the rotating QR code" as C3
+    usecase "C4 End lecture"                  as C4
+    usecase "C5 View lecture attendance"      as C5
+    usecase "Issue a fresh QR token"       as Ci1
+    usecase "Rotate token after each scan" as Ci2
+    usecase "Auto-end at scheduled time"   as C4x
+  }
+
+  package "D · Department administration" {
+    usecase "D1 Create a lecturer account"    as D1
+    usecase "D2 Import lecturers from CSV"    as D2
+    usecase "D3 Manage the course catalogue"  as D3
+    usecase "D4 Import courses from CSV"      as D4
+    usecase "D5 Review and answer complaints" as D5
+    usecase "D6 Escalate complaint to the VC" as D6
+    usecase "D7 View department dashboard"    as D7
+    usecase "Generate temporary password"    as Di1
+    usecase "Assign lecturer and course rep" as Di2
+    usecase "Set complaint status"           as Di3
+    usecase "Download CSV template"          as D4x
+  }
+
+  package "E · Oversight" {
+    usecase "E1 View escalation dashboard"           as E1
+    usecase "E2 Read an escalated complaint\n(read-only)" as E2
+  }
+
+  package "F · System administration" {
+    usecase "F1 Provision HOD and VC accounts"  as F1
+    usecase "F2 Manage records in Django admin" as F2
+    usecase "F3 Re-encode stored face images"   as F3
+  }
+}
+
+User    -- A1
+User    -- A2
+User    -- A3
+A2x .> A2 : <<extend>>
+
+Student -- B1
+Student -- B2
+Student -- B3
+Student -- B4
+Student -- B5
+Student -- B6
+B1 .> Bi1 : <<include>>
+B3 .> Bi2 : <<include>>
+B3 .> Bi3 : <<include>>
+B3 .> Bi4 : <<include>>
+Bi1 -- Cam
+Bi3 -- Face
+
+Lecturer -- C1
+Lecturer -- C2
+Lecturer -- C3
+Lecturer -- C4
+Lecturer -- C5
+C2 .> Ci1 : <<include>>
+C3 .> Ci2 : <<include>>
+C4x .> C4 : <<extend>>
+
+HOD -- D1
+HOD -- D2
+HOD -- D3
+HOD -- D4
+HOD -- D5
+HOD -- D6
+HOD -- D7
+D1 .> Di1 : <<include>>
+D2 .> Di1 : <<include>>
+D3 .> Di2 : <<include>>
+D5 .> Di3 : <<include>>
+D4x .> D4 : <<extend>>
+
+VC -- E1
+VC -- E2
+
+Admin -- F1
+Admin -- F2
+Admin -- F3
+
+note bottom of Rep
+  Inherits every lecture use case,
+  but only for the course they represent.
+end note
+
+@enduml

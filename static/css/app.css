@@ -431,6 +431,13 @@ p {
     margin-top: 18px;
 }
 
+/* The complaint filter strip: Total plus one tile per status. An explicit count
+   rather than auto-fit — `.page-copy` is a flex child around 700px, which is
+   exactly where five tiles sit on the wrap cliff and would flip to 4+1. */
+.stat-grid-filters {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .stat {
     min-height: 92px;
     padding: 16px;
@@ -469,6 +476,42 @@ p {
     color: inherit;
     opacity: 0.78;
     font-size: 0.84rem;
+}
+
+/* Stat cards that navigate. Hung off `.stat-link` rather than `.stat` so the
+   read-only cards on the dashboards do not pick up hover and selected
+   affordances they cannot honour. */
+.stat-link {
+    /* An inline <a> ignores `.stat`'s min-height, and the tiles would collapse
+       to text height and stop matching the cards beside them. */
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.stat-link:hover {
+    /* The global `a:hover` would paint these accent-teal and underline them, on
+       a panel that is already accent-teal. */
+    border-color: rgba(255, 255, 255, 0.34);
+    background: rgba(255, 255, 255, 0.16);
+    color: inherit;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.stat-link:focus-visible {
+    /* The global focus ring is teal at 28% — on this panel that is no ring. */
+    outline: 3px solid rgba(255, 255, 255, 0.72);
+    outline-offset: 2px;
+}
+
+/* Selected reads without relying on colour alone: the inset ring survives
+   forced-colours and greyscale where the lighter fill would not. */
+.stat-link.is-active {
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.20);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 .action-row {
@@ -688,7 +731,10 @@ tbody tr:last-child td {
     color: #52606d;
 }
 
-.status-submitted {
+/* Complaint statuses, in workflow order. Escalation is the loudest state, so
+   it takes the danger token — red separates it from amber (unreviewed) and
+   green (resolved) without inventing a colour. */
+.status-unreviewed {
     background: var(--warning-soft);
     color: var(--warning);
 }
@@ -696,6 +742,11 @@ tbody tr:last-child td {
 .status-reviewed {
     background: #e9f0f4;
     color: var(--brand);
+}
+
+.status-escalated {
+    background: var(--danger-soft);
+    color: var(--danger);
 }
 
 .status-resolved {
@@ -1429,6 +1480,13 @@ button.primary.is-busy::after {
         grid-template-columns: 1fr;
     }
 
+    /* Must live inside the media block, after the rule above: a
+       `.stat-grid-filters` declared up with the base rules has equal
+       specificity and would lose to it. Five tiles become 3 + 2. */
+    .stat-grid-filters {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .auth-aside {
         min-height: auto;
     }
@@ -1437,6 +1495,12 @@ button.primary.is-busy::after {
 @media (max-width: 640px) {
     body {
         font-size: 15px;
+    }
+
+    /* Five tiles become 2 + 2 + 1. Two across still fits the counts at phone
+       widths; one per row would push the table three screens down. */
+    .stat-grid-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .topbar-inner,
@@ -1630,6 +1694,13 @@ button.primary.is-busy::after {
     }
 
     table.table-stack td.table-actions {
+        /* An actions cell now carries more than one control. Left as the grid
+           every other stacked cell uses, the second one lands in the empty
+           label column on a row of its own. */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        align-items: center;
         padding-top: 10px;
         margin-top: 4px;
         border-top: 1px solid var(--line);

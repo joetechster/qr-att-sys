@@ -27,7 +27,7 @@
         <div class="section-title">
             <div>
                 <h2>Complaints</h2>
-                <p class="muted">Open a row to read the complaint, the HOD's response, and why it was escalated.</p>
+                <p class="muted">View a row to read the complaint, the HOD's response, and why it was escalated.</p>
             </div>
         </div>
     </div>
@@ -56,7 +56,9 @@
                         <td data-label="Escalated by">{{ c.escalated_by.get_full_name|default:c.escalated_by.username|default:"—" }}</td>
                         <td class="nowrap" data-label="Escalated">{{ c.escalated_at }}</td>
                         <td data-label="Status"><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
-                        <td class="table-actions"><a href="{% url 'vc:complaint_detail' c.id %}">Open</a></td>
+                        {# "View", not "Open": this sits beside the Status column, where
+                           "Open" read as a fourth status rather than as an action. #}
+                        <td class="table-actions"><a href="{% url 'vc:complaint_detail' c.id %}">View</a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

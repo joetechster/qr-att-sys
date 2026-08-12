@@ -48,6 +48,24 @@ class VcConsoleTests(TestCase):
         )
         self.assertEqual(response.status_code, 404)
 
+    def test_the_dashboard_counts_unresolved_escalations(self):
+        self.client.force_login(self.vc)
+        response = self.client.get(reverse("vc:dashboard"))
+        self.assertEqual(response.context["unresolved_count"], 1)
+        self.assertContains(response, "Unresolved")
+
+    def test_a_resolved_escalation_is_still_visible_to_the_vc(self):
+        """Asserted from the VC's side as well as the HOD's: the two read the
+        same `escalated_at` invariant through different code paths."""
+        self.escalated.status = Complaint.Status.RESOLVED
+        self.escalated.save()
+        self.client.force_login(self.vc)
+        response = self.client.get(reverse("vc:complaints"))
+        self.assertContains(response, "Marks never uploaded")
+        self.assertEqual(
+            self.client.get(reverse("vc:dashboard")).context["unresolved_count"], 0
+        )
+
     def test_detail_shows_the_escalation_note(self):
         self.client.force_login(self.vc)
         response = self.client.get(

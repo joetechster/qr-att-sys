@@ -23,6 +23,9 @@
     <p class="muted">Required columns:
         {% for column in required_columns %}<code>{{ column }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}.
         <code>unit</code> is the credit load and must be a whole number from 1 to 12.</p>
+    <p class="muted"><code>department</code> must be one of
+        {% for name in department_names %}<code>{{ name }}</code>{% if not forloop.last %}, {% endif %}{% endfor %}.
+        Capitalisation does not matter — rows are stored under the spelling shown here.</p>
     {% comment %}
     The same content the download serves, so the sample on this page can't
     drift from the file the HOD actually fills in.

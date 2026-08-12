@@ -78,7 +78,9 @@ The `--no-deps` flag is critical: `face_recognition`'s metadata asks pip for the
 
 ## Complaints and escalation
 
-A complaint belongs to the student who filed it and is answered once by the HOD (status plus a response the student sees on `/complaints/mine/`). If it needs attention above the department, the HOD escalates it from the complaint's detail page with an optional note. The Vice Chancellor's console shows only escalated complaints and never offers a form — an unescalated complaint is a 404 there even by direct id.
+A complaint belongs to the student who filed it and is answered by the HOD (status plus a response the student sees on `/complaints/mine/`). It moves through four statuses — **Unreviewed → Reviewed → Escalated → Resolved** — shown as a strip of counted filter tiles at the top of `/hod/complaints/`.
+
+If it needs attention above the department, the HOD escalates it either straight from the list with the per-row **Escalate** button, or from the complaint's detail page with a note. Both stamp `escalated_at`, which is what the Vice Chancellor's console filters on. That stamp is never cleared, so a complaint the HOD later resolves stays visible to the VC — the dashboard's **Escalated** card counts everything ever escalated, while the **Unresolved** card counts only those still open. The VC console never offers a form; an unescalated complaint is a 404 there even by direct id.
 
 ## Lectures end on their own
 
@@ -101,10 +103,24 @@ python manage.py reencode_faces          # add --dry-run to preview
 username,first_name,last_name,email
 j.adeyemi,Jumoke,Adeyemi,j.adeyemi@pcu.edu.ng
 
-# courses — required: code, title, department, lecturer_username; optional: course_rep_username
-code,title,department,lecturer_username
-CSC301,Intro to Compilers,Computer Science,j.adeyemi
+# courses — required: lecturer, code, title, unit, department
+lecturer,code,title,unit,department
+j.adeyemi,CSC301,Intro to Compilers,3,Computer Science
 ```
+
+Course reps are **not** importable — they are students appointed after the catalogue exists, so they're assigned from the course edit page. Files still using the older `lecturer_username` heading are accepted.
+
+`unit` is the credit load, a whole number from 1 to 12. `department` must be one of the nine the course form offers, and matching is case-insensitive (`computer science` is stored as `Computer Science`):
+
+| Faculty of Computer Science | Faculty of Natural Sciences | Faculty of Social Sciences |
+|---|---|---|
+| Cybersecurity | Microbiology and Biochemistry | Mass Communication |
+| Software Engineering | | International Relations |
+| Computer Science | | Economics |
+| | | Accounting |
+| | | Business Administration |
+
+The list lives in `apps/courses/departments.py` — the dropdown, the importer and the help text on the upload page all read from it. Courses created before it existed keep their old department and stay editable; the edit form offers the stored value back under a **Currently set** group.
 
 Rows whose key already exists are **skipped**, not errored, so a corrected file can be re-uploaded safely.
 

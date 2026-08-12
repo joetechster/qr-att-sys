@@ -184,17 +184,17 @@ class CourseImportTests(TestCase):
 
     def test_a_non_lecturer_username_is_an_error(self):
         User.objects.create_user("s.bello", password="x", role=User.Role.STUDENT)
-        response = self.post(self.HEADER + "s.bello,CSC301,Compilers,3,CS\n")
+        response = self.post(self.HEADER + "s.bello,CSC301,Compilers,3,Computer Science\n")
         self.assertEqual(len(response.context["result"]["errors"]), 1)
         self.assertFalse(Course.objects.exists())
 
     def test_unit_must_be_a_whole_number_in_range(self):
         response = self.post(
             self.HEADER
-            + "j.adeyemi,CSC301,Compilers,abc,CS\n"
-            + "j.adeyemi,CSC302,Networks,0,CS\n"
-            + "j.adeyemi,CSC303,Graphics,13,CS\n"
-            + "j.adeyemi,CSC304,Databases,4,CS\n"
+            + "j.adeyemi,CSC301,Compilers,abc,Computer Science\n"
+            + "j.adeyemi,CSC302,Networks,0,Computer Science\n"
+            + "j.adeyemi,CSC303,Graphics,13,Computer Science\n"
+            + "j.adeyemi,CSC304,Databases,4,Computer Science\n"
         )
         result = response.context["result"]
         self.assertEqual([row["code"] for row in result["created"]], ["CSC304"])
@@ -206,7 +206,7 @@ class CourseImportTests(TestCase):
         """Files exported before the column was renamed must keep importing."""
         response = self.post(
             "lecturer_username,code,title,unit,department\n"
-            "j.adeyemi,CSC301,Compilers,3,CS\n"
+            "j.adeyemi,CSC301,Compilers,3,Computer Science\n"
         )
         self.assertEqual(len(response.context["result"]["created"]), 1)
         self.assertEqual(Course.objects.get(code="CSC301").lecturer, self.lecturer)
@@ -218,6 +218,29 @@ class CourseImportTests(TestCase):
         self.assertIsNone(response.context.get("result"))
         self.assertContains(response, "missing required column")
         self.assertFalse(Course.objects.exists())
+
+    def test_an_unknown_department_is_reported_per_row(self):
+        """The importer holds the same vocabulary as the course form's dropdown.
+
+        Without this, a strict dropdown beside a permissive importer just moves
+        free text into the column through the back door.
+        """
+        response = self.post(
+            self.HEADER
+            + "j.adeyemi,CSC301,Compilers,3,Maths\n"
+            + "j.adeyemi,CSC302,Networks,3,Cybersecurity\n"
+        )
+        result = response.context["result"]
+        self.assertEqual([row["code"] for row in result["created"]], ["CSC302"])
+        self.assertEqual(len(result["errors"]), 1)
+        self.assertIn("Maths", result["errors"][0]["detail"])
+        self.assertIn("Cybersecurity", result["errors"][0]["detail"])
+
+    def test_a_department_is_stored_in_its_canonical_casing(self):
+        self.post(self.HEADER + "j.adeyemi,CSC301,Compilers,3, computer science \n")
+        self.assertEqual(
+            Course.objects.get(code="CSC301").department, "Computer Science"
+        )
 
 
 class ImportTemplateTests(TestCase):
@@ -275,7 +298,14 @@ class ImportTemplateTests(TestCase):
 
 
 class CourseEditTests(TestCase):
-    """Reassigning a course was previously only possible in Django admin."""
+    """Reassigning a course was previously only possible in Django admin.
+
+    These post `department="CS"`, which is not in the department vocabulary —
+    they pass because `CourseForm` offers a course's stored department back
+    under "Currently set". That is deliberate coverage of the escape hatch from
+    this side, not stale fixture data: an HOD reassigning a legacy course's
+    lecturer must not be forced to reclassify it first.
+    """
 
     def setUp(self):
         self.hod = User.objects.create_user("hod1", password="x", role=User.Role.HOD)

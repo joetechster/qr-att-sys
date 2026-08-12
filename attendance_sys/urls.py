@@ -5,6 +5,14 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 
 
+# Set here rather than in a custom AdminSite: this module already owns
+# admin.site.urls, and the three attributes are the whole customisation.
+# site_header is the banner, site_title the browser tab, index_title the
+# heading over the app list — Django's defaults name Django, not the school.
+admin.site.site_header = "PCU Attendance System"
+admin.site.site_title = "PCU Attendance System"
+admin.site.index_title = "Administration"
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("auth/", include("apps.accounts.urls")),

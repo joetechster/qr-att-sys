@@ -93,7 +93,12 @@
     </div>
     <form method="post" action="{% url 'hod:escalate_complaint' complaint.id %}" class="form-stack" style="padding: 20px;" novalidate>
         {% csrf_token %}
-        {% if complaint.is_escalated %}
+        {% comment %}
+        Guarded on the timestamp, not on `is_escalated`: a row set to Escalated
+        in the admin has the status without a stamp, and this block would print
+        "None" as the date.
+        {% endcomment %}
+        {% if complaint.escalated_at %}
             <div class="field">
                 <label>Escalated</label>
                 <div>{{ complaint.escalated_at }} by

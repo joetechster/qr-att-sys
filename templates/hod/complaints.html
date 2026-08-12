@@ -6,20 +6,24 @@
         <p class="eyebrow">Head of Department</p>
         <h1 class="page-title">Department complaints</h1>
         <p class="page-kicker">Review and respond to complaints filed by students about lecturers, courses, and general matters.</p>
-        <div class="stat-grid">
-            <div class="stat">
-                <span class="stat-label">Total</span>
-                <span class="stat-value">{{ complaints|length }}</span>
-                <span class="stat-caption">{% if status_filter %}filtered{% else %}all complaints{% endif %}</span>
-            </div>
+        {% comment %}
+        The filter strip. Each tile is a card of the same size, so the counts
+        read as a breakdown of the inbox rather than as buttons — and the counts
+        stay whole-inbox even while a filter is applied.
+        {% endcomment %}
+        <div class="stat-grid stat-grid-filters">
+            {% for tile in status_tiles %}
+                <a class="stat stat-link{% if tile.is_active %} is-active{% endif %}"
+                   href="{% url 'hod:complaints' %}{{ tile.query }}"
+                   {% if tile.is_active %}aria-current="page"{% endif %}>
+                    <span class="stat-label">{{ tile.label }}</span>
+                    <span class="stat-value">{{ tile.count }}</span>
+                </a>
+            {% endfor %}
         </div>
     </div>
     <div class="action-row">
-        <a href="{% url 'hod:complaints' %}" class="btn {% if not status_filter and not escalated_only %}{% else %}btn-secondary{% endif %}">All</a>
-        {% for value, label in status_choices %}
-            <a href="?status={{ value }}" class="btn {% if status_filter == value %}{% else %}btn-secondary{% endif %}">{{ label }}</a>
-        {% endfor %}
-        <a href="?escalated=1" class="btn {% if escalated_only %}{% else %}btn-secondary{% endif %}">Escalated</a>
+        <a href="{% url 'hod:dashboard' %}" class="btn btn-secondary">&larr; Back to dashboard</a>
     </div>
 </section>
 
@@ -41,7 +45,7 @@
                 <tbody>
                 {% for c in complaints %}
                     <tr>
-                        <td data-label="Subject">{{ c.subject }}{% if c.is_escalated %} <span class="tag">Escalated</span>{% endif %}</td>
+                        <td data-label="Subject">{{ c.subject }}</td>
                         <td data-label="Student">
                             {% if c.is_anonymous %}
                                 <span class="tag">Anonymous</span>
@@ -56,7 +60,25 @@
                         </td>
                         <td class="nowrap" data-label="Filed">{{ c.created_at }}</td>
                         <td data-label="Status"><span class="status-pill status-{{ c.status }}">{{ c.get_status_display }}</span></td>
-                        <td class="table-actions"><a href="{% url 'hod:complaint_detail' c.id %}">Review</a></td>
+                        <td class="table-actions">
+                            <a href="{% url 'hod:complaint_detail' c.id %}">Review</a>
+                            {% if c.can_escalate %}
+                                {% comment %}
+                                A POST, not a link: hod:escalate_complaint is
+                                @require_POST, and a GET that changes state is one
+                                prefetching browser away from escalating the whole
+                                page. `next` returns the HOD to this list with its
+                                filter intact instead of to the detail page.
+                                {% endcomment %}
+                                <form class="inline" method="post" action="{% url 'hod:escalate_complaint' c.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button class="btn btn-secondary btn-sm" type="submit">Escalate</button>
+                                </form>
+                            {% elif c.is_escalated %}
+                                <span class="muted">With VC</span>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>

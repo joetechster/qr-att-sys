@@ -13,6 +13,7 @@ from django.utils.crypto import get_random_string
 from apps.accounts.decorators import role_required
 from apps.accounts.models import User
 from apps.complaints.models import Complaint
+from apps.courses.departments import DEPARTMENT_NAMES, normalise_department
 from apps.courses.forms import CourseForm
 from apps.courses.models import Course
 from apps.lectures.models import Lecture
@@ -134,9 +135,12 @@ def dashboard(request):
             "course_count": Course.objects.count(),
             "lecturer_count": User.objects.filter(role=User.Role.LECTURER).count(),
             "lecture_count": Lecture.objects.count(),
-            "open_complaints": Complaint.objects.filter(
-                status=Complaint.Status.SUBMITTED
+            "unreviewed_complaints": Complaint.objects.filter(
+                status=Complaint.Status.UNREVIEWED
             ).count(),
+            # Counts anything ever escalated, which is deliberately not the same
+            # as `status=escalated`: a complaint the HOD escalated and then
+            # resolved is still with the Vice Chancellor, and this card says so.
             "escalated_count": Complaint.objects.filter(
                 escalated_at__isnull=False
             ).count(),
@@ -275,6 +279,7 @@ def import_courses(request):
         "form": CsvUploadForm(),
         "required_columns": COURSE_REQUIRED_COLUMNS,
         "optional_columns": COURSE_OPTIONAL_COLUMNS,
+        "department_names": DEPARTMENT_NAMES,
         "sample_csv": _template_csv("courses"),
     }
     if request.method == "POST":
@@ -324,6 +329,21 @@ def _create_courses(rows):
                     }
                 )
                 continue
+            # Held to the same vocabulary as the course form's dropdown. A
+            # strict dropdown beside a permissive importer just moves free text
+            # into the column through the back door.
+            department = normalise_department(row.get("department", ""))
+            if department is None:
+                errors.append(
+                    {
+                        "line": line,
+                        "detail": (
+                            f"Unknown department '{row.get('department', '')}'. "
+                            f"Use one of: {', '.join(DEPARTMENT_NAMES)}."
+                        ),
+                    }
+                )
+                continue
             try:
                 with transaction.atomic():
                     # course_rep is deliberately not importable: reps are students
@@ -333,7 +353,9 @@ def _create_courses(rows):
                         code=code,
                         title=row.get("title", ""),
                         unit=int(raw_unit),
-                        department=row.get("department", ""),
+                        # Canonical casing, not the row's: "computer science"
+                        # and "Computer Science" are one department.
+                        department=department,
                         lecturer=lecturer,
                     )
             except IntegrityError:
